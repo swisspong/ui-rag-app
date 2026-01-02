@@ -5,16 +5,16 @@ import { Button } from "@/components/ui/button"
 import { DataTable } from "@/components/ui/data-table"
 import { 
   CollectionHeader, 
-  mockChunks, 
-  chunkColumns 
-} from "../collection-data"
+  mockSubChunks, 
+  subChunkColumns 
+} from "../../collection-data"
 
-export default function ChunksPage({
+export default function DocumentChunkDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string; chunkId: string }>
 }) {
-  const { id } = React.use(params)
+  const { id, chunkId } = React.use(params)
   
   // Mock collection data - in real app, this would be fetched based on params.id
   const collectionData = {
@@ -35,24 +35,20 @@ export default function ChunksPage({
             description={collectionData.description}
           />
 
-          {/* Additional Chunks Section */}
+          {/* Document Chunk Detail Section */}
           <div className="space-y-4 mt-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold tracking-tight">Additional Chunks</h2>
+                <h2 className="text-2xl font-bold tracking-tight">Document Chunk Details</h2>
                 <p className="text-muted-foreground">
-                  View additional document chunks for RAG
+                  View chunks under document chunk {chunkId}
                 </p>
               </div>
-              <div className="flex gap-2">
-                <Button>Add Chunk</Button>
-                <Button>Process All Pending</Button>
-                <Button>Process All Fail</Button>
-              </div>
+              <Button>Reprocess Chunks</Button>
             </div>
             <DataTable
-              columns={chunkColumns}
-              data={mockChunks}
+              columns={subChunkColumns}
+              data={mockSubChunks}
               searchable={true}
               pageSize={5}
             />

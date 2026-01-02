@@ -50,6 +50,12 @@ export interface DocumentChunk {
   createdDate: string
 }
 
+export interface SubChunk {
+  id: string
+  content: string
+  status: "completed" | "processing" | "pending" | "failed"
+}
+
 // Mock data
 export const mockFiles: File[] = [
   {
@@ -193,6 +199,34 @@ export const mockDocumentChunks: DocumentChunk[] = [
   },
 ]
 
+export const mockSubChunks: SubChunk[] = [
+  {
+    id: "1",
+    content: "Sub-chunk 1: This section covers the product introduction and basic features...",
+    status: "completed",
+  },
+  {
+    id: "2",
+    content: "Sub-chunk 2: Installation procedures and system requirements are detailed here...",
+    status: "completed",
+  },
+  {
+    id: "3",
+    content: "Sub-chunk 3: Configuration options and settings explained in this section...",
+    status: "processing",
+  },
+  {
+    id: "4",
+    content: "Sub-chunk 4: Troubleshooting common issues and error codes...",
+    status: "pending",
+  },
+  {
+    id: "5",
+    content: "Sub-chunk 5: Advanced features and customization options...",
+    status: "failed",
+  },
+]
+
 // Column definitions for Files
 export const fileColumns: ColumnDef<File>[] = [
   {
@@ -252,15 +286,6 @@ export const fileColumns: ColumnDef<File>[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem>
-              <Eye className="mr-2 h-4 w-4" />
-              View
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Eye className="mr-2 h-4 w-4" />
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
             <DropdownMenuItem className="text-destructive">
               <Trash2 className="mr-2 h-4 w-4" />
               Delete
@@ -317,15 +342,7 @@ export const documentColumns: ColumnDef<Document>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuItem>
               <Eye className="mr-2 h-4 w-4" />
-              View
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Eye className="mr-2 h-4 w-4" />
               Edit
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Layers className="mr-2 h-4 w-4" />
-              Chunking
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-destructive">
@@ -376,8 +393,50 @@ export const chunkColumns: ColumnDef<Chunk>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuItem>
               <Eye className="mr-2 h-4 w-4" />
-              View
+              Edit
             </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="text-destructive">
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )
+    },
+  },
+]
+
+// Column definitions for Sub Chunks
+export const subChunkColumns: ColumnDef<SubChunk>[] = [
+  {
+    accessorKey: "content",
+    header: "Content",
+    cell: ({ row }) => (
+      <div className="max-w-md truncate">{row.getValue("content")}</div>
+    ),
+  },
+  {
+    accessorKey: "status",
+    header: "Status",
+    cell: ({ row }) => {
+      const status = row.getValue("status") as "completed" | "processing" | "pending" | "failed"
+      return <StatusBadge status={status} />
+    },
+  },
+  {
+    id: "actions",
+    header: "Action",
+    cell: ({ row }) => {
+      const subChunk = row.original
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
             <DropdownMenuItem>
               <Eye className="mr-2 h-4 w-4" />
               Edit
@@ -399,7 +458,21 @@ export const documentChunkColumns: ColumnDef<DocumentChunk>[] = [
   {
     accessorKey: "documentName",
     header: "Document Name",
-    cell: ({ row }) => <div className="font-medium">{row.getValue("documentName")}</div>,
+    cell: ({ row }) => {
+      const pathname = usePathname()
+      // Extract collectionId from current path (e.g., /collections/123/document-chunk)
+      const pathParts = pathname.split('/')
+      const collectionId = pathParts[2]
+      
+      return (
+        <Link
+          href={`/collections/${collectionId}/document-chunk/${row.original.id}`}
+          className="font-medium text-primary hover:underline hover:text-primary/80 transition-colors"
+        >
+          {row.getValue("documentName")}
+        </Link>
+      )
+    },
   },
   {
     accessorKey: "chunkCount",
@@ -449,10 +522,6 @@ export const documentChunkColumns: ColumnDef<DocumentChunk>[] = [
             <DropdownMenuItem>
               <Eye className="mr-2 h-4 w-4" />
               View Chunks
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Eye className="mr-2 h-4 w-4" />
-              Edit
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-destructive">
