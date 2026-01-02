@@ -1,11 +1,11 @@
 "use client"
 
 import * as React from "react"
-import { Trash2 } from "lucide-react"
+import { Edit } from "lucide-react"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 
-export interface DeleteActionProps {
-  /** Callback function executed when delete is clicked */
+export interface EditActionProps {
+  /** Callback function executed when edit is clicked */
   onClick: () => void
   /** Optional custom label for the menu item */
   label?: string
@@ -17,13 +17,13 @@ export interface DeleteActionProps {
   children?: React.ReactNode
 }
 
-export function DeleteAction({
+export function EditAction({
   onClick,
-  label = "Delete",
+  label = "Edit",
   className,
   variant,
   children,
-}: DeleteActionProps) {
+}: EditActionProps) {
   return (
     <DropdownMenuItem
       onClick={onClick}
@@ -32,7 +32,7 @@ export function DeleteAction({
     >
       {children || (
         <>
-          <Trash2 className="h-4 w-4 mr-2" />
+          <Edit className="h-4 w-4 mr-2" />
           {label}
         </>
       )}

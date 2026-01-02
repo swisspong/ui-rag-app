@@ -44,7 +44,7 @@ export default function DocumentChunkPage({
                   Manage document chunking status and view chunks
                 </p>
               </div>
-              <Button>Process All Pending</Button>
+              <Button>Add Document</Button>
             </div>
             <DataTable
               columns={documentChunkColumns}

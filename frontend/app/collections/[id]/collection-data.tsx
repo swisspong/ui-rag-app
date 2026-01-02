@@ -6,18 +6,15 @@ import {
   ColumnDef,
 } from "@tanstack/react-table"
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { ArrowUpDown, MoreHorizontal, Eye, Trash2, Layers } from "lucide-react"
+import { DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
+import { ArrowUpDown, MoreHorizontal, Eye, Layers } from "lucide-react"
+import { EditAction } from "@/components/edit-action"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { FileIcon, FileTextIcon, LayersIcon, ArrowLeftIcon, FileStackIcon } from "lucide-react"
 import { StatusBadge } from "@/components/status-badge"
+import { ActionsDropdown } from "@/components/actions-dropdown"
+import { DeleteAction } from "@/components/delete-action"
 
 // Types
 export interface File {
@@ -279,19 +276,12 @@ export const fileColumns: ColumnDef<File>[] = [
     cell: ({ row }) => {
       const file = row.original
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem className="text-destructive">
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <ActionsDropdown>
+          <DeleteAction
+            onClick={() => { /* TODO: Implement delete handler */ }}
+            variant="destructive"
+          />
+        </ActionsDropdown>
       )
     },
   },
@@ -333,24 +323,14 @@ export const documentColumns: ColumnDef<Document>[] = [
     cell: ({ row }) => {
       const document = row.original
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem>
-              <Eye className="mr-2 h-4 w-4" />
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive">
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <ActionsDropdown>
+          <EditAction onClick={() => { /* TODO: Implement edit handler */ }} />
+          <DropdownMenuSeparator />
+          <DeleteAction
+            onClick={() => { /* TODO: Implement delete handler */ }}
+            variant="destructive"
+          />
+        </ActionsDropdown>
       )
     },
   },
@@ -384,24 +364,14 @@ export const chunkColumns: ColumnDef<Chunk>[] = [
     cell: ({ row }) => {
       const chunk = row.original
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem>
-              <Eye className="mr-2 h-4 w-4" />
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive">
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <ActionsDropdown>
+          <EditAction onClick={() => { /* TODO: Implement edit handler */ }} />
+          <DropdownMenuSeparator />
+          <DeleteAction
+            onClick={() => { /* TODO: Implement delete handler */ }}
+            variant="destructive"
+          />
+        </ActionsDropdown>
       )
     },
   },
@@ -430,24 +400,14 @@ export const subChunkColumns: ColumnDef<SubChunk>[] = [
     cell: ({ row }) => {
       const subChunk = row.original
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem>
-              <Eye className="mr-2 h-4 w-4" />
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive">
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <ActionsDropdown>
+          <EditAction onClick={() => { /* TODO: Implement edit handler */ }} />
+          <DropdownMenuSeparator />
+          <DeleteAction
+            onClick={() => { /* TODO: Implement delete handler */ }}
+            variant="destructive"
+          />
+        </ActionsDropdown>
       )
     },
   },
@@ -517,26 +477,19 @@ export const documentChunkColumns: ColumnDef<DocumentChunk>[] = [
       const collectionId = pathParts[2]
       
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <Link href={`/collections/${collectionId}/document-chunk/${row.original.id}`}>
-              <DropdownMenuItem>
-                <Eye className="mr-2 h-4 w-4" />
-                View Chunks
-              </DropdownMenuItem>
-            </Link>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive">
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
+        <ActionsDropdown>
+          <Link href={`/collections/${collectionId}/document-chunk/${row.original.id}`}>
+            <DropdownMenuItem>
+              <Eye className="mr-2 h-4 w-4" />
+              View Chunks
             </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+          </Link>
+          <DropdownMenuSeparator />
+          <DeleteAction
+            onClick={() => { /* TODO: Implement delete handler */ }}
+            variant="destructive"
+          />
+        </ActionsDropdown>
       )
     },
   },

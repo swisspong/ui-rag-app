@@ -11,17 +11,11 @@ import {
   ColumnDef,
 } from "@tanstack/react-table"
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { ArrowUpDown } from "lucide-react"
 import { DataTable } from "@/components/ui/data-table"
 import { DeleteAction } from "@/components/delete-action"
+import { ActionsDropdown } from "@/components/actions-dropdown"
 
 // Types
 interface Collection {
@@ -182,36 +176,17 @@ const columns: ColumnDef<Collection>[] = [
       }
 
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleEdit}>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit
-            </DropdownMenuItem>
-            <DeleteAction
-              onConfirm={() => console.log("Delete collection:", collection.id)}
-              itemName={collection.name}
-              itemType="collection"
-            >
-              <DropdownMenuItem
-                onSelect={(e) => {
-                  e.preventDefault()
-                }}
-                className="text-destructive"
-              >
-                Delete
-              </DropdownMenuItem>
-            </DeleteAction>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <ActionsDropdown>
+          <DropdownMenuItem onClick={handleEdit}>
+            <Edit className="mr-2 h-4 w-4" />
+            Edit
+          </DropdownMenuItem>
+          <DeleteAction
+            onClick={() => console.log("Delete collection:", collection.id)}
+            variant="destructive"
+          >
+          </DeleteAction>
+        </ActionsDropdown>
       )
     },
   },
