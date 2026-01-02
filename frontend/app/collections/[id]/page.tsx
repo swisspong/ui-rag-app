@@ -19,8 +19,12 @@ export default function CollectionDetailPage({
   }, [params, router])
 
   return (
-    <div className="flex items-center justify-center h-screen">
-      <div className="text-muted-foreground">Redirecting...</div>
+    <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden">
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-4 lg:p-6 space-y-6">
+          <div className="text-muted-foreground">Redirecting...</div>
+        </div>
+      </div>
     </div>
   )
 }

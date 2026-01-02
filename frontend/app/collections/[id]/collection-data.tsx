@@ -511,6 +511,11 @@ export const documentChunkColumns: ColumnDef<DocumentChunk>[] = [
     header: "Action",
     cell: ({ row }) => {
       const documentChunk = row.original
+      const pathname = usePathname()
+      // Extract collectionId from current path (e.g., /collections/123/document-chunk)
+      const pathParts = pathname.split('/')
+      const collectionId = pathParts[2]
+      
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -519,10 +524,12 @@ export const documentChunkColumns: ColumnDef<DocumentChunk>[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem>
-              <Eye className="mr-2 h-4 w-4" />
-              View Chunks
-            </DropdownMenuItem>
+            <Link href={`/collections/${collectionId}/document-chunk/${row.original.id}`}>
+              <DropdownMenuItem>
+                <Eye className="mr-2 h-4 w-4" />
+                View Chunks
+              </DropdownMenuItem>
+            </Link>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-destructive">
               <Trash2 className="mr-2 h-4 w-4" />

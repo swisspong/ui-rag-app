@@ -44,7 +44,11 @@ export default function DocumentChunkDetailPage({
                   View chunks under document chunk {chunkId}
                 </p>
               </div>
-              <Button>Reprocess Chunks</Button>
+              <div className="flex gap-2">
+                <Button>Add Chunk</Button>
+                <Button>Process All Pending</Button>
+                <Button>Process All Fail</Button>
+              </div>
             </div>
             <DataTable
               columns={subChunkColumns}

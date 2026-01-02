@@ -219,23 +219,28 @@ const columns: ColumnDef<Collection>[] = [
 
 export default function CollectionsPage() {
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Collections</h1>
-          <p className="text-muted-foreground">
-            Manage your document collections
-          </p>
-        </div>
-        <Button>Add Collection</Button>
-      </div>
+    <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden">
+      {/* Main Content Area */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-4 lg:p-6 space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">Collections</h1>
+              <p className="text-muted-foreground">
+                Manage your document collections
+              </p>
+            </div>
+            <Button>Add Collection</Button>
+          </div>
 
-      <DataTable
-        columns={columns}
-        data={collectionsData}
-        searchable={true}
-        pageSize={5}
-      />
+          <DataTable
+            columns={columns}
+            data={collectionsData}
+            searchable={true}
+            pageSize={5}
+          />
+        </div>
+      </div>
     </div>
   )
 }
