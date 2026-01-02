@@ -40,6 +40,7 @@ export interface Chunk {
   id: string
   documentName: string
   content: string
+  status: "completed" | "processing" | "pending" | "failed"
 }
 
 export interface DocumentChunk {
@@ -131,26 +132,31 @@ export const mockChunks: Chunk[] = [
     id: "1",
     documentName: "product_manual_v2.pdf",
     content: "This product manual provides comprehensive instructions for using our product...",
+    status: "completed",
   },
   {
     id: "2",
     documentName: "product_manual_v2.pdf",
     content: "Chapter 1: Introduction. Welcome to our product. This section covers basic setup...",
+    status: "completed",
   },
   {
     id: "3",
     documentName: "user_guide_getting_started.pdf",
     content: "Getting Started Guide. This guide will help you understand the basics...",
+    status: "processing",
   },
   {
     id: "4",
     documentName: "user_guide_getting_started.pdf",
     content: "Step 1: Installation. Follow these steps to install the software...",
+    status: "pending",
   },
   {
     id: "5",
     documentName: "technical_specs.pdf",
     content: "Technical Specifications Document. This document contains detailed specs...",
+    status: "failed",
   },
 ]
 
@@ -346,6 +352,14 @@ export const chunkColumns: ColumnDef<Chunk>[] = [
     cell: ({ row }) => (
       <div className="max-w-md truncate">{row.getValue("content")}</div>
     ),
+  },
+  {
+    accessorKey: "status",
+    header: "Status",
+    cell: ({ row }) => {
+      const status = row.getValue("status") as "completed" | "processing" | "pending" | "failed"
+      return <StatusBadge status={status} />
+    },
   },
   {
     id: "actions",
