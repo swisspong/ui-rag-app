@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import {
-  Edit,
   MoreHorizontal,
 } from "lucide-react"
 import Link from "next/link"
@@ -11,11 +10,13 @@ import {
   ColumnDef,
 } from "@tanstack/react-table"
 import { Button } from "@/components/ui/button"
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { ArrowUpDown } from "lucide-react"
 import { DataTable } from "@/components/ui/data-table"
 import { DeleteAction } from "@/components/delete-action"
+import { EditAction } from "@/components/edit-action"
 import { ActionsDropdown } from "@/components/actions-dropdown"
+import { CollectionFormDialog } from "@/components/collections"
+import { type CollectionFormData } from "@/components/collections"
 
 // Types
 interface Collection {
@@ -27,7 +28,7 @@ interface Collection {
 }
 
 // Mock data
-const collectionsData: Collection[] = [
+const initialCollectionsData: Collection[] = [
   {
     id: "1",
     name: "Product Documentation",
@@ -100,99 +101,150 @@ const collectionsData: Collection[] = [
   },
 ]
 
-// Column definitions
-const columns: ColumnDef<Collection>[] = [
-  {
-    accessorKey: "name",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="h-8 px-2 font-medium"
-        >
-          Name
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
-    },
-    cell: ({ row }) => {
-      const collection = row.original
-      return (
-        <Link href={`/collections/${collection.id}`} className="font-medium hover:underline">
-          {row.getValue("name")}
-        </Link>
-      )
-    },
-  },
-  {
-    accessorKey: "description",
-    header: "Description",
-    cell: ({ row }) => (
-      <div className="max-w-xs truncate">{row.getValue("description")}</div>
-    ),
-  },
-  {
-    accessorKey: "documentCount",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="h-8 px-2 font-medium"
-        >
-          Document Count
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
-    },
-    cell: ({ row }) => <div>{row.getValue("documentCount")}</div>,
-  },
-  {
-    accessorKey: "createdDate",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="h-8 px-2 font-medium"
-        >
-          Created Date
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
-    },
-    cell: ({ row }) => <div>{row.getValue("createdDate")}</div>,
-  },
-  {
-    id: "actions",
-    header: "Actions",
-    cell: ({ row }) => {
-      const collection = row.original
-
-      const handleEdit = () => {
-        console.log("Edit collection:", collection.id)
-        // TODO: Implement edit functionality
-      }
-
-      return (
-        <ActionsDropdown>
-          <DropdownMenuItem onClick={handleEdit}>
-            <Edit className="mr-2 h-4 w-4" />
-            Edit
-          </DropdownMenuItem>
-          <DeleteAction
-            onClick={() => console.log("Delete collection:", collection.id)}
-            variant="destructive"
-          >
-          </DeleteAction>
-        </ActionsDropdown>
-      )
-    },
-  },
-]
-
 export default function CollectionsPage() {
+  const [collectionsData, setCollectionsData] = React.useState<Collection[]>(initialCollectionsData)
+  const [createDialogOpen, setCreateDialogOpen] = React.useState(false)
+  const [editDialogOpen, setEditDialogOpen] = React.useState(false)
+  const [editingCollection, setEditingCollection] = React.useState<Collection | null>(null)
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
+
+  const handleCreateCollection = async (data: CollectionFormData) => {
+    setIsSubmitting(true)
+    try {
+      console.log("Creating collection:", data)
+      // TODO: Replace with actual API call
+      
+      const newCollection: Collection = {
+        id: Date.now().toString(),
+        name: data.name,
+        description: data.description || "",
+        documentCount: 0,
+        createdDate: new Date().toISOString().split('T')[0],
+      }
+      
+      setCollectionsData([...collectionsData, newCollection])
+      setCreateDialogOpen(false)
+    } catch (error) {
+      console.error("Error creating collection:", error)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleEditCollection = async (data: CollectionFormData) => {
+    setIsSubmitting(true)
+    try {
+      console.log("Updating collection:", editingCollection?.id, data)
+      // TODO: Replace with actual API call
+      
+      if (editingCollection) {
+        setCollectionsData(
+          collectionsData.map((collection) =>
+            collection.id === editingCollection.id
+              ? { ...collection, name: data.name, description: data.description || "" }
+              : collection
+          )
+        )
+      }
+      
+      setEditDialogOpen(false)
+      setEditingCollection(null)
+    } catch (error) {
+      console.error("Error updating collection:", error)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleEditClick = (collection: Collection) => {
+    setEditingCollection(collection)
+    setEditDialogOpen(true)
+  }
+
+  // Column definitions
+  const columns: ColumnDef<Collection>[] = [
+    {
+      accessorKey: "name",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="h-8 px-2 font-medium"
+          >
+            Name
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+      cell: ({ row }) => {
+        const collection = row.original
+        return (
+          <Link href={`/collections/${collection.id}`} className="font-medium hover:underline">
+            {row.getValue("name")}
+          </Link>
+        )
+      },
+    },
+    {
+      accessorKey: "description",
+      header: "Description",
+      cell: ({ row }) => (
+        <div className="max-w-xs truncate">{row.getValue("description")}</div>
+      ),
+    },
+    {
+      accessorKey: "documentCount",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="h-8 px-2 font-medium"
+          >
+            Document Count
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+      cell: ({ row }) => <div>{row.getValue("documentCount")}</div>,
+    },
+    {
+      accessorKey: "createdDate",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="h-8 px-2 font-medium"
+          >
+            Created Date
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+      cell: ({ row }) => <div>{row.getValue("createdDate")}</div>,
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => {
+        const collection = row.original
+
+        return (
+          <ActionsDropdown>
+            <EditAction onClick={() => handleEditClick(collection)} />
+            <DeleteAction
+              onClick={() => console.log("Delete collection:", collection.id)}
+              variant="destructive"
+            >
+            </DeleteAction>
+          </ActionsDropdown>
+        )
+      },
+    },
+  ]
+
   return (
     <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden">
       {/* Main Content Area */}
@@ -205,7 +257,7 @@ export default function CollectionsPage() {
                 Manage your document collections
               </p>
             </div>
-            <Button>Add Collection</Button>
+            <Button onClick={() => setCreateDialogOpen(true)}>Add Collection</Button>
           </div>
 
           <DataTable
@@ -216,6 +268,28 @@ export default function CollectionsPage() {
           />
         </div>
       </div>
+
+      {/* Create Collection Dialog */}
+      <CollectionFormDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        mode="create"
+        onSubmit={handleCreateCollection}
+        isSubmitting={isSubmitting}
+      />
+
+      {/* Edit Collection Dialog */}
+      <CollectionFormDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        mode="edit"
+        defaultValues={editingCollection ? {
+          name: editingCollection.name,
+          description: editingCollection.description,
+        } : undefined}
+        onSubmit={handleEditCollection}
+        isSubmitting={isSubmitting}
+      />
     </div>
   )
 }
