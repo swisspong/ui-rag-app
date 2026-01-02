@@ -3,9 +3,9 @@
 import * as React from "react"
 import {
   Edit,
-  Trash2,
   MoreHorizontal,
 } from "lucide-react"
+import Link from "next/link"
 import {
   flexRender,
   ColumnDef,
@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { ArrowUpDown } from "lucide-react"
 import { DataTable } from "@/components/ui/data-table"
+import { DeleteAction } from "@/components/delete-action"
 
 // Types
 interface Collection {
@@ -121,9 +122,14 @@ const columns: ColumnDef<Collection>[] = [
         </Button>
       )
     },
-    cell: ({ row }) => (
-      <div className="font-medium">{row.getValue("name")}</div>
-    ),
+    cell: ({ row }) => {
+      const collection = row.original
+      return (
+        <Link href={`/collections/${collection.id}`} className="font-medium hover:underline">
+          {row.getValue("name")}
+        </Link>
+      )
+    },
   },
   {
     accessorKey: "description",
@@ -175,11 +181,6 @@ const columns: ColumnDef<Collection>[] = [
         // TODO: Implement edit functionality
       }
 
-      const handleDelete = () => {
-        console.log("Delete collection:", collection.id)
-        // TODO: Implement delete functionality
-      }
-
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -195,10 +196,20 @@ const columns: ColumnDef<Collection>[] = [
               <Edit className="mr-2 h-4 w-4" />
               Edit
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleDelete} className="text-destructive">
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
-            </DropdownMenuItem>
+            <DeleteAction
+              onConfirm={() => console.log("Delete collection:", collection.id)}
+              itemName={collection.name}
+              itemType="collection"
+            >
+              <DropdownMenuItem
+                onSelect={(e) => {
+                  e.preventDefault()
+                }}
+                className="text-destructive"
+              >
+                Delete
+              </DropdownMenuItem>
+            </DeleteAction>
           </DropdownMenuContent>
         </DropdownMenu>
       )
