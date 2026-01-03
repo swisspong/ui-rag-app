@@ -9,8 +9,9 @@ import {
   documentColumns,
   type Document
 } from "../collection-data"
-import { DocumentFormDialog, DocumentEditDialog } from "@/components/documents"
-import { type DocumentFormData, type FileOption, type DocumentEditFormData } from "@/components/documents"
+import { DocumentFormDialog } from "@/components/documents"
+import { DocumentEditDialog, type DocumentEditFormData } from "@/components/document-edit"
+import { type DocumentFormData, type FileOption } from "@/components/documents"
 
 export default function DocumentsPage({
   params,

@@ -1,5 +1,3 @@
 export { DocumentForm } from "./document-form"
 export { DocumentFormDialog } from "./document-form-dialog"
-export { DocumentEditForm } from "./document-edit-form"
-export { DocumentEditDialog } from "./document-edit-dialog"
-export { documentSchema, type DocumentFormData, type FileOption, documentEditSchema, type DocumentEditFormData } from "./document-schema"
+export { documentSchema, type DocumentFormData, type FileOption } from "./document-schema"

@@ -3,11 +3,15 @@
 import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { DataTable } from "@/components/ui/data-table"
-import { 
-  CollectionHeader, 
-  mockDocumentChunks, 
-  documentChunkColumns 
+import {
+  CollectionHeader,
+  mockDocumentChunks,
+  documentChunkColumns
 } from "../collection-data"
+import {
+  DocumentChunkFormDialog,
+  type DocumentChunkFormValues
+} from "@/components/document-chunk"
 
 export default function DocumentChunkPage({
   params,
@@ -16,11 +20,27 @@ export default function DocumentChunkPage({
 }) {
   const { id } = React.use(params)
   
+  // Dialog state
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false)
+  const [isLoading, setIsLoading] = React.useState(false)
+  
   // Mock collection data - in real app, this would be fetched based on params.id
   const collectionData = {
     id: id,
     name: "Product Documentation",
     description: "All product manuals and user guides",
+  }
+
+  const handleAddDocumentChunk = async (data: DocumentChunkFormValues) => {
+    console.log("Submitted document chunk data:", data)
+    setIsLoading(true)
+    
+    // Simulate async operation
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+    setIsLoading(false)
+    setIsDialogOpen(false)
+    alert(`Successfully added document chunk for document ID: ${data.documentId}`)
   }
 
   return (
@@ -44,7 +64,7 @@ export default function DocumentChunkPage({
                   Manage document chunking status and view chunks
                 </p>
               </div>
-              <Button>Add Document</Button>
+              <Button onClick={() => setIsDialogOpen(true)}>Add Document</Button>
             </div>
             <DataTable
               columns={documentChunkColumns}
@@ -55,6 +75,13 @@ export default function DocumentChunkPage({
           </div>
         </div>
       </div>
+      
+      <DocumentChunkFormDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        onSubmit={handleAddDocumentChunk}
+        isLoading={isLoading}
+      />
     </div>
   )
 }

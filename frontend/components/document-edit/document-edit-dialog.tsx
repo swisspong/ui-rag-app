@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { DocumentEditForm } from "./document-edit-form"
-import { type DocumentEditFormData } from "./document-schema"
+import { type DocumentEditFormData } from "./document-edit-schema"
 
 interface DocumentEditDialogProps {
   open: boolean

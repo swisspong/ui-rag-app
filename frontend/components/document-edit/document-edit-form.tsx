@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/field"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { documentEditSchema, type DocumentEditFormData } from "./document-schema"
+import { documentEditSchema, type DocumentEditFormData } from "./document-edit-schema"
 
 interface DocumentEditFormProps {
   onSubmit: (data: DocumentEditFormData) => void | Promise<void>
