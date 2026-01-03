@@ -3,11 +3,13 @@
 import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { DataTable } from "@/components/ui/data-table"
-import { 
-  CollectionHeader, 
-  mockFiles, 
-  fileColumns 
+import {
+  CollectionHeader,
+  mockFiles,
+  fileColumns
 } from "../collection-data"
+import { FileUploadDialog } from "@/components/files/file-upload-dialog"
+import { type FileUploadFormData } from "@/components/files/file-schema"
 
 export default function FilesPage({
   params,
@@ -15,6 +17,8 @@ export default function FilesPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = React.use(params)
+  const [uploadDialogOpen, setUploadDialogOpen] = React.useState(false)
+  const [isUploading, setIsUploading] = React.useState(false)
   
   // Mock collection data - in real app, this would be fetched based on params.id
   const collectionData = {
@@ -23,13 +27,28 @@ export default function FilesPage({
     description: "All product manuals and user guides",
   }
 
+  const handleFileUpload = async (data: FileUploadFormData) => {
+    setIsUploading(true)
+    try {
+      // Mock upload - in real app, this would be an API call
+      console.log("Uploading files:", data.files)
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+      console.log("Files uploaded successfully!")
+      setUploadDialogOpen(false)
+    } catch (error) {
+      console.error("Error uploading files:", error)
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
   return (
     <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden">
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto">
         <div className="p-4 lg:p-6 space-y-6">
           {/* Collection Header with Tabs */}
-          <CollectionHeader 
+          <CollectionHeader
             collectionId={id}
             name={collectionData.name}
             description={collectionData.description}
@@ -44,7 +63,9 @@ export default function FilesPage({
                   Manage files in this collection
                 </p>
               </div>
-              <Button>Upload File</Button>
+              <Button onClick={() => setUploadDialogOpen(true)}>
+                Upload File
+              </Button>
             </div>
             <DataTable
               columns={fileColumns}
@@ -55,6 +76,15 @@ export default function FilesPage({
           </div>
         </div>
       </div>
+
+      {/* File Upload Dialog */}
+      <FileUploadDialog
+        open={uploadDialogOpen}
+        onOpenChange={setUploadDialogOpen}
+        collectionId={id}
+        onSubmit={handleFileUpload}
+        isSubmitting={isUploading}
+      />
     </div>
   )
 }
