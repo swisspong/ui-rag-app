@@ -68,7 +68,15 @@ export function FileUploadForm({
         })
       }
 
-      const newFiles = acceptedFiles.map((file) => ({
+      // Filter out duplicate files before mapping
+      const uniqueNewFiles = acceptedFiles.filter((newFile) =>
+        !files.some(existingFile =>
+          existingFile.name === newFile.name &&
+          existingFile.size === newFile.size
+        )
+      )
+
+      const newFiles = uniqueNewFiles.map((file) => ({
         name: file.name,
         size: file.size,
         type: file.type,
@@ -83,7 +91,7 @@ export function FileUploadForm({
         return updatedFiles
       })
     },
-    [setValue, setError, clearErrors]
+    [setValue, setError, clearErrors, files]
   )
 
   const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
