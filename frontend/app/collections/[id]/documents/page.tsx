@@ -3,11 +3,13 @@
 import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { DataTable } from "@/components/ui/data-table"
-import { 
-  CollectionHeader, 
-  mockDocuments, 
-  documentColumns 
+import {
+  CollectionHeader,
+  mockDocuments,
+  documentColumns
 } from "../collection-data"
+import { DocumentFormDialog } from "@/components/documents"
+import { type DocumentFormData, type FileOption } from "@/components/documents"
 
 export default function DocumentsPage({
   params,
@@ -21,6 +23,37 @@ export default function DocumentsPage({
     id: id,
     name: "Product Documentation",
     description: "All product manuals and user guides",
+  }
+
+  // Dialog state
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false)
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
+
+  // Mock files data
+  const mockFiles: FileOption[] = [
+    { id: "file-1", name: "document.pdf" },
+    { id: "file-2", name: "scan.jpg" },
+    { id: "file-3", name: "report.pdf" },
+    { id: "file-4", name: "invoice.png" },
+    { id: "file-5", name: "manual.pdf" },
+  ]
+
+  // Handle form submission
+  const handleSubmit = async (data: DocumentFormData) => {
+    setIsSubmitting(true)
+    try {
+      console.log("Creating document:", data)
+      // TODO: Replace with actual API call
+      
+      // Simulate async operation
+      await new Promise(resolve => setTimeout(resolve, 1500))
+      
+      setIsDialogOpen(false)
+    } catch (error) {
+      console.error("Error creating document:", error)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -44,7 +77,7 @@ export default function DocumentsPage({
                   View and manage documents
                 </p>
               </div>
-              <Button>Add Document</Button>
+              <Button onClick={() => setIsDialogOpen(true)}>Add Document</Button>
             </div>
             <DataTable
               columns={documentColumns}
@@ -55,6 +88,16 @@ export default function DocumentsPage({
           </div>
         </div>
       </div>
+
+      {/* Document Form Dialog */}
+      <DocumentFormDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        mode="create"
+        files={mockFiles}
+        onSubmit={handleSubmit}
+        isSubmitting={isSubmitting}
+      />
     </div>
   )
 }
