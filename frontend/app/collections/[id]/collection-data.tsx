@@ -288,7 +288,7 @@ export const fileColumns: ColumnDef<File>[] = [
 ]
 
 // Column definitions for Documents
-export const documentColumns: ColumnDef<Document>[] = [
+export const documentColumns = (onEdit?: (document: Document) => void): ColumnDef<Document>[] => [
   {
     accessorKey: "documentName",
     header: "Document Name",
@@ -324,7 +324,9 @@ export const documentColumns: ColumnDef<Document>[] = [
       const document = row.original
       return (
         <ActionsDropdown>
-          <EditAction onClick={() => { /* TODO: Implement edit handler */ }} />
+          <EditAction
+            onClick={() => onEdit && onEdit(document)}
+          />
           <DropdownMenuSeparator />
           <DeleteAction
             onClick={() => { /* TODO: Implement delete handler */ }}
@@ -423,7 +425,7 @@ export const documentChunkColumns: ColumnDef<DocumentChunk>[] = [
       // Extract collectionId from current path (e.g., /collections/123/document-chunk)
       const pathParts = pathname.split('/')
       const collectionId = pathParts[2]
-      
+
       return (
         <Link
           href={`/collections/${collectionId}/document-chunk/${row.original.id}`}
@@ -475,7 +477,7 @@ export const documentChunkColumns: ColumnDef<DocumentChunk>[] = [
       // Extract collectionId from current path (e.g., /collections/123/document-chunk)
       const pathParts = pathname.split('/')
       const collectionId = pathParts[2]
-      
+
       return (
         <ActionsDropdown>
           <Link href={`/collections/${collectionId}/document-chunk/${row.original.id}`}>
@@ -498,14 +500,13 @@ export const documentChunkColumns: ColumnDef<DocumentChunk>[] = [
 // Collection Tabs Navigation Component
 export function CollectionTabs({ collectionId }: { collectionId: string }) {
   const pathname = usePathname()
-  
+
   const getTabClassName = (path: string) => {
     const isActive = pathname === `/collections/${collectionId}${path}`
-    return `flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
-      isActive 
-        ? "bg-primary text-primary-foreground" 
+    return `flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${isActive
+        ? "bg-primary text-primary-foreground"
         : "hover:bg-muted"
-    }`
+      }`
   }
 
   return (
@@ -525,32 +526,32 @@ export function CollectionTabs({ collectionId }: { collectionId: string }) {
         Documents
       </Link>
       <Link
-        href={`/collections/${collectionId}/additional-chunks`}
-        className={getTabClassName("/additional-chunks")}
-      >
-        <LayersIcon className="h-4 w-4" />
-        Additional Chunks
-      </Link>
-      <Link
         href={`/collections/${collectionId}/document-chunk`}
         className={getTabClassName("/document-chunk")}
       >
         <FileStackIcon className="h-4 w-4" />
         Document Chunk
       </Link>
+      <Link
+        href={`/collections/${collectionId}/additional-chunks`}
+        className={getTabClassName("/additional-chunks")}
+      >
+        <LayersIcon className="h-4 w-4" />
+        Additional Chunks
+      </Link>
     </div>
   )
 }
 
 // Collection Header Component
-export function CollectionHeader({ 
+export function CollectionHeader({
   collectionId,
   name,
-  description 
-}: { 
+  description
+}: {
   collectionId: string
   name: string
-  description: string 
+  description: string
 }) {
   return (
     <div className="space-y-4">

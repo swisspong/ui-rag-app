@@ -6,10 +6,11 @@ import { DataTable } from "@/components/ui/data-table"
 import {
   CollectionHeader,
   mockDocuments,
-  documentColumns
+  documentColumns,
+  type Document
 } from "../collection-data"
-import { DocumentFormDialog } from "@/components/documents"
-import { type DocumentFormData, type FileOption } from "@/components/documents"
+import { DocumentFormDialog, DocumentEditDialog } from "@/components/documents"
+import { type DocumentFormData, type FileOption, type DocumentEditFormData } from "@/components/documents"
 
 export default function DocumentsPage({
   params,
@@ -28,6 +29,11 @@ export default function DocumentsPage({
   // Dialog state
   const [isDialogOpen, setIsDialogOpen] = React.useState(false)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+  
+  // Edit state
+  const [editingDocument, setEditingDocument] = React.useState<{ id: string; name: string } | null>(null)
+  const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false)
+  const [isEditSubmitting, setIsEditSubmitting] = React.useState(false)
 
   // Mock files data
   const mockFiles: FileOption[] = [
@@ -38,7 +44,7 @@ export default function DocumentsPage({
     { id: "file-5", name: "manual.pdf" },
   ]
 
-  // Handle form submission
+  // Handle form submission for create
   const handleSubmit = async (data: DocumentFormData) => {
     setIsSubmitting(true)
     try {
@@ -54,6 +60,33 @@ export default function DocumentsPage({
     } finally {
       setIsSubmitting(false)
     }
+  }
+  
+  // Handle form submission for edit
+  const handleEditSubmit = async (data: DocumentEditFormData) => {
+    setIsEditSubmitting(true)
+    try {
+      if (editingDocument) {
+        console.log("Updating document:", editingDocument.id, data)
+        // TODO: Replace with actual API call
+        
+        // Simulate async operation
+        await new Promise(resolve => setTimeout(resolve, 1500))
+        
+        setIsEditDialogOpen(false)
+        setEditingDocument(null)
+      }
+    } catch (error) {
+      console.error("Error updating document:", error)
+    } finally {
+      setIsEditSubmitting(false)
+    }
+  }
+  
+  // Handle edit button click
+  const handleEdit = (document: Document) => {
+    setEditingDocument({ id: document.id, name: document.documentName })
+    setIsEditDialogOpen(true)
   }
 
   return (
@@ -80,7 +113,7 @@ export default function DocumentsPage({
               <Button onClick={() => setIsDialogOpen(true)}>Add Document</Button>
             </div>
             <DataTable
-              columns={documentColumns}
+              columns={documentColumns(handleEdit)}
               data={mockDocuments}
               searchable={true}
               pageSize={5}
@@ -98,6 +131,21 @@ export default function DocumentsPage({
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}
       />
+      
+      {/* Document Edit Dialog */}
+      {editingDocument && (
+        <DocumentEditDialog
+          open={isEditDialogOpen}
+          onOpenChange={(open) => {
+            setIsEditDialogOpen(open)
+            if (!open) setEditingDocument(null)
+          }}
+          documentId={editingDocument.id}
+          documentName={editingDocument.name}
+          onSubmit={handleEditSubmit}
+          isSubmitting={isEditSubmitting}
+        />
+      )}
     </div>
   )
 }
