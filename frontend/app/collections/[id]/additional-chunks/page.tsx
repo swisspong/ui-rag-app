@@ -3,11 +3,15 @@
 import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { DataTable } from "@/components/ui/data-table"
-import { 
-  CollectionHeader, 
-  mockChunks, 
-  chunkColumns 
+import {
+  CollectionHeader,
+  mockChunks,
+  chunkColumns
 } from "../collection-data"
+import {
+  AdditionalChunkFormDialog,
+  type AdditionalChunkData
+} from "@/components/additional-chunk"
 
 export default function ChunksPage({
   params,
@@ -16,11 +20,27 @@ export default function ChunksPage({
 }) {
   const { id } = React.use(params)
   
+  // Dialog state
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false)
+  const [isLoading, setIsLoading] = React.useState(false)
+  
   // Mock collection data - in real app, this would be fetched based on params.id
   const collectionData = {
     id: id,
     name: "Product Documentation",
     description: "All product manuals and user guides",
+  }
+
+  const handleAddAdditionalChunk = async (data: AdditionalChunkData) => {
+    console.log("Submitted additional chunk data:", data)
+    setIsLoading(true)
+    
+    // Simulate async operation
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+    setIsLoading(false)
+    setIsDialogOpen(false)
+    alert(`Successfully added additional chunk`)
   }
 
   return (
@@ -45,7 +65,7 @@ export default function ChunksPage({
                 </p>
               </div>
               <div className="flex gap-2">
-                <Button>Add Chunk</Button>
+                <Button onClick={() => setIsDialogOpen(true)}>Add Chunk</Button>
                 <Button>Process All Pending</Button>
                 <Button>Process All Fail</Button>
               </div>
@@ -59,6 +79,13 @@ export default function ChunksPage({
           </div>
         </div>
       </div>
+      
+      <AdditionalChunkFormDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        onSubmit={handleAddAdditionalChunk}
+        isLoading={isLoading}
+      />
     </div>
   )
 }

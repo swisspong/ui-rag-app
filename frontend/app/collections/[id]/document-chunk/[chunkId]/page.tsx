@@ -3,11 +3,13 @@
 import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { DataTable } from "@/components/ui/data-table"
-import { 
-  CollectionHeader, 
-  mockSubChunks, 
-  subChunkColumns 
+import {
+  CollectionHeader,
+  mockSubChunks,
+  subChunkColumns
 } from "../../collection-data"
+import { AdditionalChunkFormDialog } from "@/components/additional-chunk"
+import { type AdditionalChunkData } from "@/components/additional-chunk"
 
 export default function DocumentChunkDetailPage({
   params,
@@ -15,6 +17,12 @@ export default function DocumentChunkDetailPage({
   params: Promise<{ id: string; chunkId: string }>
 }) {
   const { id, chunkId } = React.use(params)
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false)
+
+  const handleSubmit = (data: AdditionalChunkData) => {
+    console.log("Submitted additional chunk data:", data)
+    setIsDialogOpen(false)
+  }
   
   // Mock collection data - in real app, this would be fetched based on params.id
   const collectionData = {
@@ -45,7 +53,7 @@ export default function DocumentChunkDetailPage({
                 </p>
               </div>
               <div className="flex gap-2">
-                <Button>Add Chunk</Button>
+                <Button onClick={() => setIsDialogOpen(true)}>Add Chunk</Button>
                 <Button>Process All Pending</Button>
                 <Button>Process All Fail</Button>
               </div>
@@ -59,6 +67,11 @@ export default function DocumentChunkDetailPage({
           </div>
         </div>
       </div>
+      <AdditionalChunkFormDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        onSubmit={handleSubmit}
+      />
     </div>
   )
 }
