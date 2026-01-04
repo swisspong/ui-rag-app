@@ -11,10 +11,11 @@ import { ArrowUpDown, MoreHorizontal, Eye, Layers } from "lucide-react"
 import { EditAction } from "@/components/edit-action"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { FileIcon, FileTextIcon, LayersIcon, ArrowLeftIcon, FileStackIcon } from "lucide-react"
+import { FileIcon, FileTextIcon, LayersIcon, ArrowLeftIcon, FileStackIcon, InfoIcon } from "lucide-react"
 import { StatusBadge } from "@/components/status-badge"
 import { ActionsDropdown } from "@/components/actions-dropdown"
 import { DeleteAction } from "@/components/delete-action"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 // Types
 export interface File {
@@ -38,6 +39,7 @@ export interface Chunk {
   documentName: string
   content: string
   status: "completed" | "processing" | "pending" | "failed"
+  meta?: Record<string, any> | null
 }
 
 export interface DocumentChunk {
@@ -51,6 +53,7 @@ export interface SubChunk {
   id: string
   content: string
   status: "completed" | "processing" | "pending" | "failed"
+  meta?: Record<string, any> | null
 }
 
 // Mock data
@@ -136,30 +139,59 @@ export const mockChunks: Chunk[] = [
     documentName: "product_manual_v2.pdf",
     content: "This product manual provides comprehensive instructions for using our product...",
     status: "completed",
+    meta: {
+      source: "PDF",
+      page: 1,
+      confidence: 0.95,
+      language: "en",
+      processingTime: "2.3s"
+    },
   },
   {
     id: "2",
     documentName: "product_manual_v2.pdf",
     content: "Chapter 1: Introduction. Welcome to our product. This section covers basic setup...",
     status: "completed",
+    meta: {
+      source: "PDF",
+      page: 2,
+      confidence: 0.92,
+      language: "en",
+      processingTime: "1.8s"
+    },
   },
   {
     id: "3",
     documentName: "user_guide_getting_started.pdf",
     content: "Getting Started Guide. This guide will help you understand the basics...",
     status: "processing",
+    meta: {
+      source: "PDF",
+      page: 1,
+      confidence: 0.88,
+      language: "en",
+      processingTime: "2.1s"
+    },
   },
   {
     id: "4",
     documentName: "user_guide_getting_started.pdf",
     content: "Step 1: Installation. Follow these steps to install the software...",
     status: "pending",
+    meta: null,
   },
   {
     id: "5",
     documentName: "technical_specs.pdf",
     content: "Technical Specifications Document. This document contains detailed specs...",
     status: "failed",
+    meta: {
+      source: "PDF",
+      page: 1,
+      error: "OCR failed due to corrupted image",
+      confidence: 0.0,
+      language: "en"
+    },
   },
 ]
 
@@ -201,26 +233,56 @@ export const mockSubChunks: SubChunk[] = [
     id: "1",
     content: "Sub-chunk 1: This section covers the product introduction and basic features...",
     status: "completed",
+    meta: {
+      parentChunkId: "1",
+      position: 0,
+      tokens: 150,
+      embeddingModel: "text-embedding-3-small",
+      vectorIndex: "chunks_index"
+    },
   },
   {
     id: "2",
     content: "Sub-chunk 2: Installation procedures and system requirements are detailed here...",
     status: "completed",
+    meta: {
+      parentChunkId: "1",
+      position: 1,
+      tokens: 200,
+      embeddingModel: "text-embedding-3-small",
+      vectorIndex: "chunks_index"
+    },
   },
   {
     id: "3",
     content: "Sub-chunk 3: Configuration options and settings explained in this section...",
     status: "processing",
+    meta: {
+      parentChunkId: "2",
+      position: 0,
+      tokens: 175,
+      embeddingModel: "text-embedding-3-small",
+      vectorIndex: "chunks_index"
+    },
   },
   {
     id: "4",
     content: "Sub-chunk 4: Troubleshooting common issues and error codes...",
     status: "pending",
+    meta: null,
   },
   {
     id: "5",
     content: "Sub-chunk 5: Advanced features and customization options...",
     status: "failed",
+    meta: {
+      parentChunkId: "3",
+      position: 1,
+      tokens: 180,
+      error: "Embedding generation failed",
+      embeddingModel: "text-embedding-3-small",
+      vectorIndex: "chunks_index"
+    },
   },
 ]
 
@@ -361,6 +423,38 @@ export const chunkColumns = (onEdit?: (chunk: Chunk) => void): ColumnDef<Chunk>[
     },
   },
   {
+    accessorKey: "meta",
+    header: "Meta",
+    cell: ({ row }) => {
+      const meta = row.getValue("meta") as Record<string, any> | null | undefined
+      if (!meta) {
+        return (
+          <span className="px-2 py-0.5 rounded-md bg-muted text-muted-foreground text-xs italic font-medium">
+            N/A
+          </span>
+        )
+      }
+      return (
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" size="icon-sm" className="h-8 w-8">
+              <InfoIcon className="h-4 w-4" />
+              <span className="sr-only">View meta</span>
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-80" align="start">
+            <div className="space-y-2">
+              <div className="font-medium text-sm">Meta Data</div>
+              <pre className="text-xs bg-muted p-2 rounded-md overflow-auto max-h-64">
+                {JSON.stringify(meta, null, 2)}
+              </pre>
+            </div>
+          </PopoverContent>
+        </Popover>
+      )
+    },
+  },
+  {
     id: "actions",
     header: "Action",
     cell: ({ row }) => {
@@ -394,6 +488,38 @@ export const subChunkColumns = (onEdit?: (subChunk: SubChunk) => void): ColumnDe
     cell: ({ row }) => {
       const status = row.getValue("status") as "completed" | "processing" | "pending" | "failed"
       return <StatusBadge status={status} />
+    },
+  },
+  {
+    accessorKey: "meta",
+    header: "Meta",
+    cell: ({ row }) => {
+      const meta = row.getValue("meta") as Record<string, any> | null | undefined
+      if (!meta) {
+        return (
+          <span className="px-2 py-0.5 rounded-md bg-muted text-muted-foreground text-xs italic font-medium">
+            N/A
+          </span>
+        )
+      }
+      return (
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" size="icon-sm" className="h-8 w-8">
+              <InfoIcon className="h-4 w-4" />
+              <span className="sr-only">View meta</span>
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-80" align="start">
+            <div className="space-y-2">
+              <div className="font-medium text-sm">Meta Data</div>
+              <pre className="text-xs bg-muted p-2 rounded-md overflow-auto max-h-64">
+                {JSON.stringify(meta, null, 2)}
+              </pre>
+            </div>
+          </PopoverContent>
+        </Popover>
+      )
     },
   },
   {
