@@ -6,10 +6,13 @@ import { DataTable } from "@/components/ui/data-table"
 import {
   CollectionHeader,
   mockSubChunks,
-  subChunkColumns
+  subChunkColumns,
+  type SubChunk
 } from "../../collection-data"
 import { AdditionalChunkFormDialog } from "@/components/additional-chunk"
 import { type AdditionalChunkData } from "@/components/additional-chunk"
+
+type FormMode = "create" | "edit"
 
 export default function DocumentChunkDetailPage({
   params,
@@ -17,11 +20,60 @@ export default function DocumentChunkDetailPage({
   params: Promise<{ id: string; chunkId: string }>
 }) {
   const { id, chunkId } = React.use(params)
+  
+  // Dialog state
   const [isDialogOpen, setIsDialogOpen] = React.useState(false)
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [mode, setMode] = React.useState<FormMode>("create")
+  const [editingSubChunk, setEditingSubChunk] = React.useState<SubChunk | null>(null)
 
-  const handleSubmit = (data: AdditionalChunkData) => {
+  const handleAddAdditionalChunk = async (data: AdditionalChunkData) => {
     console.log("Submitted additional chunk data:", data)
+    setIsSubmitting(true)
+    
+    // Simulate async operation
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+    setIsSubmitting(false)
     setIsDialogOpen(false)
+    alert(`Successfully added additional chunk`)
+  }
+
+  const handleEditAdditionalChunk = async (data: AdditionalChunkData) => {
+    console.log("Updated additional chunk data:", data)
+    setIsSubmitting(true)
+    
+    // Simulate async operation
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+    setIsSubmitting(false)
+    setIsDialogOpen(false)
+    setEditingSubChunk(null)
+    alert(`Successfully updated additional chunk`)
+  }
+
+  const handleOpenCreateDialog = () => {
+    setMode("create")
+    setEditingSubChunk(null)
+    setIsDialogOpen(true)
+  }
+
+  const handleOpenEditDialog = (subChunk: SubChunk) => {
+    setMode("edit")
+    setEditingSubChunk(subChunk)
+    setIsDialogOpen(true)
+  }
+
+  const handleSubmit = mode === "create" ? handleAddAdditionalChunk : handleEditAdditionalChunk
+
+  const getDialogDefaultValues = (): Partial<AdditionalChunkData> | undefined => {
+    if (mode === "edit" && editingSubChunk) {
+      return {
+        content: editingSubChunk.content,
+        meta: {}, // Default empty meta object
+      }
+    }
+    return undefined
   }
   
   // Mock collection data - in real app, this would be fetched based on params.id
@@ -53,13 +105,13 @@ export default function DocumentChunkDetailPage({
                 </p>
               </div>
               <div className="flex gap-2">
-                <Button onClick={() => setIsDialogOpen(true)}>Add Chunk</Button>
+                <Button onClick={handleOpenCreateDialog}>Add Chunk</Button>
                 <Button>Process All Pending</Button>
                 <Button>Process All Fail</Button>
               </div>
             </div>
             <DataTable
-              columns={subChunkColumns}
+              columns={subChunkColumns(handleOpenEditDialog)}
               data={mockSubChunks}
               searchable={true}
               pageSize={5}
@@ -70,7 +122,10 @@ export default function DocumentChunkDetailPage({
       <AdditionalChunkFormDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
+        mode={mode}
+        defaultValues={getDialogDefaultValues()}
         onSubmit={handleSubmit}
+        isSubmitting={isSubmitting}
       />
     </div>
   )

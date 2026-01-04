@@ -339,7 +339,7 @@ export const documentColumns = (onEdit?: (document: Document) => void): ColumnDe
 ]
 
 // Column definitions for Chunks
-export const chunkColumns: ColumnDef<Chunk>[] = [
+export const chunkColumns = (onEdit?: (chunk: Chunk) => void): ColumnDef<Chunk>[] => [
   {
     accessorKey: "documentName",
     header: "Document",
@@ -367,7 +367,7 @@ export const chunkColumns: ColumnDef<Chunk>[] = [
       const chunk = row.original
       return (
         <ActionsDropdown>
-          <EditAction onClick={() => { /* TODO: Implement edit handler */ }} />
+          <EditAction onClick={() => onEdit && onEdit(chunk)} />
           <DropdownMenuSeparator />
           <DeleteAction
             onClick={() => { /* TODO: Implement delete handler */ }}
@@ -380,7 +380,7 @@ export const chunkColumns: ColumnDef<Chunk>[] = [
 ]
 
 // Column definitions for Sub Chunks
-export const subChunkColumns: ColumnDef<SubChunk>[] = [
+export const subChunkColumns = (onEdit?: (subChunk: SubChunk) => void): ColumnDef<SubChunk>[] => [
   {
     accessorKey: "content",
     header: "Content",
@@ -403,7 +403,7 @@ export const subChunkColumns: ColumnDef<SubChunk>[] = [
       const subChunk = row.original
       return (
         <ActionsDropdown>
-          <EditAction onClick={() => { /* TODO: Implement edit handler */ }} />
+          <EditAction onClick={() => onEdit && onEdit(subChunk)} />
           <DropdownMenuSeparator />
           <DeleteAction
             onClick={() => { /* TODO: Implement delete handler */ }}

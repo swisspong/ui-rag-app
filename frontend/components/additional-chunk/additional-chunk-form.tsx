@@ -23,13 +23,15 @@ import {
 interface AdditionalChunkFormProps {
   onSubmit: (data: AdditionalChunkData) => void | Promise<void>
   defaultValues?: Partial<AdditionalChunkData>
-  isLoading?: boolean
+  isSubmitting?: boolean
+  submitButtonText?: string
 }
 
 export function AdditionalChunkForm({
   onSubmit,
   defaultValues,
-  isLoading = false,
+  isSubmitting = false,
+  submitButtonText = "Save",
 }: AdditionalChunkFormProps) {
   const {
     register,
@@ -48,7 +50,7 @@ export function AdditionalChunkForm({
   }
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} id="additional-chunk-form" className="space-y-6">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       <FieldGroup>
         <Field>
           <FieldLabel htmlFor="content">Content *</FieldLabel>
@@ -79,6 +81,12 @@ export function AdditionalChunkForm({
           )}
         </Field>
       </FieldGroup>
+
+      <div className="flex justify-end">
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Saving..." : submitButtonText}
+        </Button>
+      </div>
     </form>
   )
 }
