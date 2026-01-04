@@ -13,6 +13,7 @@ import {
   AdditionalChunkFormDialog,
   type AdditionalChunkData
 } from "@/components/additional-chunk"
+import { toast } from "sonner"
 
 type FormMode = "create" | "edit"
 
@@ -45,7 +46,7 @@ export default function ChunksPage({
     
     setIsSubmitting(false)
     setIsDialogOpen(false)
-    alert(`Successfully added additional chunk`)
+    toast.success("Successfully added additional chunk")
   }
 
   const handleEditAdditionalChunk = async (data: AdditionalChunkData) => {
@@ -58,7 +59,7 @@ export default function ChunksPage({
     setIsSubmitting(false)
     setIsDialogOpen(false)
     setEditingChunk(null)
-    alert(`Successfully updated additional chunk`)
+    toast.success("Successfully updated additional chunk")
   }
 
   const handleOpenCreateDialog = () => {

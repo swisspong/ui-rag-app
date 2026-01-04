@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { DataTable } from "@/components/ui/data-table"
 import {
@@ -55,8 +56,10 @@ export default function DocumentsPage({
       // Simulate async operation
       await new Promise(resolve => setTimeout(resolve, 1500))
       
+      toast.success("Document created successfully")
       setIsDialogOpen(false)
     } catch (error) {
+      toast.error("Failed to create document")
       console.error("Error creating document:", error)
     } finally {
       setIsSubmitting(false)
@@ -74,10 +77,12 @@ export default function DocumentsPage({
         // Simulate async operation
         await new Promise(resolve => setTimeout(resolve, 1500))
         
+        toast.success("Document updated successfully")
         setIsEditDialogOpen(false)
         setEditingDocument(null)
       }
     } catch (error) {
+      toast.error("Failed to update document")
       console.error("Error updating document:", error)
     } finally {
       setIsEditSubmitting(false)

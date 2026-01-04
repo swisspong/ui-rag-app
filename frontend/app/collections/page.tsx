@@ -5,6 +5,7 @@ import {
   MoreHorizontal,
 } from "lucide-react"
 import Link from "next/link"
+import { toast } from "sonner"
 import {
   flexRender,
   ColumnDef,
@@ -123,8 +124,10 @@ export default function CollectionsPage() {
       }
       
       setCollectionsData([...collectionsData, newCollection])
+      toast.success("Collection created successfully")
       setCreateDialogOpen(false)
     } catch (error) {
+      toast.error("Failed to create collection")
       console.error("Error creating collection:", error)
     } finally {
       setIsSubmitting(false)
@@ -139,18 +142,20 @@ export default function CollectionsPage() {
       
       if (editingCollection) {
         setCollectionsData(
-          collectionsData.map((collection) =>
-            collection.id === editingCollection.id
-              ? { ...collection, name: data.name, description: data.description || "" }
-              : collection
+            collectionsData.map((collection) =>
+              collection.id === editingCollection.id
+                ? { ...collection, name: data.name, description: data.description || "" }
+                : collection
+            )
           )
-        )
-      }
-      
-      setEditDialogOpen(false)
-      setEditingCollection(null)
-    } catch (error) {
-      console.error("Error updating collection:", error)
+        }
+        
+        toast.success("Collection updated successfully")
+        setEditDialogOpen(false)
+        setEditingCollection(null)
+      } catch (error) {
+        toast.error("Failed to update collection")
+        console.error("Error updating collection:", error)
     } finally {
       setIsSubmitting(false)
     }

@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { DataTable } from "@/components/ui/data-table"
 import {
@@ -34,8 +35,10 @@ export default function FilesPage({
       console.log("Uploading files:", data.files)
       await new Promise((resolve) => setTimeout(resolve, 2000))
       console.log("Files uploaded successfully!")
+      toast.success("Files uploaded successfully")
       setUploadDialogOpen(false)
     } catch (error) {
+      toast.error("Failed to upload files")
       console.error("Error uploading files:", error)
     } finally {
       setIsUploading(false)

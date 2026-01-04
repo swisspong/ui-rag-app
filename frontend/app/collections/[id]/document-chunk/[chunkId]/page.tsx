@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { DataTable } from "@/components/ui/data-table"
 import {
@@ -36,7 +37,7 @@ export default function DocumentChunkDetailPage({
     
     setIsSubmitting(false)
     setIsDialogOpen(false)
-    alert(`Successfully added additional chunk`)
+    toast.success("Successfully added additional chunk")
   }
 
   const handleEditAdditionalChunk = async (data: AdditionalChunkData) => {
@@ -49,7 +50,7 @@ export default function DocumentChunkDetailPage({
     setIsSubmitting(false)
     setIsDialogOpen(false)
     setEditingSubChunk(null)
-    alert(`Successfully updated additional chunk`)
+    toast.success("Successfully updated additional chunk")
   }
 
   const handleOpenCreateDialog = () => {

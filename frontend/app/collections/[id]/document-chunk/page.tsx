@@ -12,6 +12,7 @@ import {
   DocumentChunkFormDialog,
   type DocumentChunkFormValues
 } from "@/components/document-chunk"
+import { toast } from "sonner"
 
 export default function DocumentChunkPage({
   params,
@@ -40,7 +41,7 @@ export default function DocumentChunkPage({
     
     setIsLoading(false)
     setIsDialogOpen(false)
-    alert(`Successfully added document chunk for document ID: ${data.documentId}`)
+    toast.success("Successfully added document chunk for document ID: " + data.documentId)
   }
 
   return (
