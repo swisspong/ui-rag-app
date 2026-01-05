@@ -1,0 +1,5 @@
+DELETE_MULTIPLE_CHUNKS_BY_IDS_AND_COLLECTION_ID = """
+DELETE FROM chunks
+WHERE id = ANY($1)
+AND collection_id = $2
+"""

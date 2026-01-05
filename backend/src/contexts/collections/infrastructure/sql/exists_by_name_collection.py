@@ -1,0 +1,6 @@
+EXISTS_BY_NAME_COLLECTION ="""
+SELECT 1
+FROM collections
+WHERE name ILIKE $1
+LIMIT 1
+"""

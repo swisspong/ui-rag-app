@@ -1,0 +1,5 @@
+.env
+.venv
+/volumes
+/backend/test
+__pycache__
