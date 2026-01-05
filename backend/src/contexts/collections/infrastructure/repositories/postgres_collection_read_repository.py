@@ -1,5 +1,6 @@
 from typing import Any, List, Tuple
 import json
+from datetime import timezone
 
 from src.shared.infrastructure.database.asyncpg_connection import AsyncPGConnection
 from src.contexts.collections.domain.value_objects.collection_name import CollectionName
@@ -56,8 +57,8 @@ class PostgresCollectionReadRepository(CollectionReadRepository):
                     name=row['name'],
                     description=row['description'],
                     file_count=row['file_count'],
-                    created_at=row['created_at'],
-                    updated_at=row['updated_at']
+                    created_at=row['created_at'].replace(tzinfo=timezone.utc),
+                    updated_at=row['updated_at'].replace(tzinfo=timezone.utc)
                 )
                 collections.append(collection)
 

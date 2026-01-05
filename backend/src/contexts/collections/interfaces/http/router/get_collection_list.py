@@ -63,9 +63,7 @@ async def get_collection_list(
     total_pages = math.ceil(result.total_count / request.limit)
     # Create the response
     return GetCollectionListResponse(
-        data=CollectionListData(
-            collections=collection_responses
-        ),
+        data=collection_responses,
         meta=CollectionListMeta(
             total=result.total_count,
             limit=request.limit,

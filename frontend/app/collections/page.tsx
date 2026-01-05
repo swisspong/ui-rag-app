@@ -18,92 +18,57 @@ import { EditAction } from "@/components/edit-action"
 import { ActionsDropdown } from "@/components/actions-dropdown"
 import { CollectionFormDialog } from "@/components/collections"
 import { type CollectionFormData } from "@/components/collections"
+import { getCollections } from "@/lib/services"
+import type { Collection as ApiCollection } from "@/lib/types/collection.types"
 
-// Types
+// Helper function to format date with standard English format and robust timezone handling
+const formatDate = (dateString: string | null | undefined): string => {
+  if (!dateString) return "-"
+  
+  try {
+    // Parse the date string - this handles UTC dates correctly
+    // new Date() automatically parses ISO strings (e.g., "2024-01-15T10:00:00Z") as UTC
+    const date = new Date(dateString)
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      console.warn("Invalid date string:", dateString)
+      return "-"
+    }
+    
+    // Use Intl.DateTimeFormat with explicit timeZone parameter for robust timezone conversion
+    // This ensures the date is correctly converted from UTC to Asia/Bangkok (UTC+7)
+    const formatter = new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false, // Use 24-hour format for clarity
+    })
+    
+    // Format the date with the Bangkok timezone
+    const formattedDate = formatter.format(date)
+    
+    return formattedDate
+  } catch (error) {
+    console.error("Error formatting date:", dateString, error)
+    return "-"
+  }
+}
+
+// Types - Local UI interface matching the API response
 interface Collection {
   id: string
   name: string
   description: string
-  documentCount: number
-  createdDate: string
+  fileCount: number
+  createdAt: string
 }
 
-// Mock data
-const initialCollectionsData: Collection[] = [
-  {
-    id: "1",
-    name: "Product Documentation",
-    description: "All product manuals and user guides",
-    documentCount: 156,
-    createdDate: "2024-01-15",
-  },
-  {
-    id: "2",
-    name: "Research Papers",
-    description: "Academic research and whitepapers",
-    documentCount: 89,
-    createdDate: "2024-02-20",
-  },
-  {
-    id: "3",
-    name: "Customer Support",
-    description: "FAQs and support documentation",
-    documentCount: 234,
-    createdDate: "2024-03-10",
-  },
-  {
-    id: "4",
-    name: "Legal Documents",
-    description: "Contracts and legal agreements",
-    documentCount: 45,
-    createdDate: "2024-04-05",
-  },
-  {
-    id: "5",
-    name: "Marketing Materials",
-    description: "Brochures, presentations, and campaigns",
-    documentCount: 178,
-    createdDate: "2024-05-12",
-  },
-  {
-    id: "6",
-    name: "Technical Specifications",
-    description: "Technical docs and API references",
-    documentCount: 312,
-    createdDate: "2024-06-18",
-  },
-  {
-    id: "7",
-    name: "Training Resources",
-    description: "Employee training materials",
-    documentCount: 67,
-    createdDate: "2024-07-22",
-  },
-  {
-    id: "8",
-    name: "Project Archives",
-    description: "Completed project documentation",
-    documentCount: 198,
-    createdDate: "2024-08-30",
-  },
-  {
-    id: "9",
-    name: "Knowledge Base",
-    description: "Internal knowledge sharing",
-    documentCount: 423,
-    createdDate: "2024-09-14",
-  },
-  {
-    id: "10",
-    name: "Compliance Documents",
-    description: "Regulatory and compliance materials",
-    documentCount: 56,
-    createdDate: "2024-10-25",
-  },
-]
-
 export default function CollectionsPage() {
-  const [collectionsData, setCollectionsData] = React.useState<Collection[]>(initialCollectionsData)
+  const [collectionsData, setCollectionsData] = React.useState<Collection[]>([])
+  const [isLoading, setIsLoading] = React.useState(true)
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false)
   const [editDialogOpen, setEditDialogOpen] = React.useState(false)
   const [editingCollection, setEditingCollection] = React.useState<Collection | null>(null)
@@ -119,8 +84,8 @@ export default function CollectionsPage() {
         id: Date.now().toString(),
         name: data.name,
         description: data.description || "",
-        documentCount: 0,
-        createdDate: new Date().toISOString().split('T')[0],
+        fileCount: 0,
+        createdAt: new Date().toISOString().split('T')[0],
       }
       
       setCollectionsData([...collectionsData, newCollection])
@@ -166,6 +131,60 @@ export default function CollectionsPage() {
     setEditDialogOpen(true)
   }
 
+  // Fetch collections on component mount
+  React.useEffect(() => {
+    const fetchCollections = async () => {
+      setIsLoading(true)
+      try {
+        console.log("Fetching collections...")
+        const response = await getCollections()
+        console.log("API Response:", response)
+        console.log("Response data type:", typeof response.data)
+        console.log("Response data:", response.data)
+        console.log("Is data an array?", Array.isArray(response.data))
+        
+        // Check if response.data exists and is an array
+        if (!response.data) {
+          console.error("Response data is null or undefined")
+          toast.error("Invalid API response: no data received")
+          setCollectionsData([])
+          return
+        }
+        
+        if (!Array.isArray(response.data)) {
+          console.error("Response data is not an array:", response.data)
+          toast.error("Invalid API response: data is not an array")
+          setCollectionsData([])
+          return
+        }
+        
+        // Map API response to UI interface
+        const mappedCollections: Collection[] = response.data.map((apiCollection: ApiCollection) => ({
+          id: apiCollection.id,
+          name: apiCollection.name,
+          description: apiCollection.description,
+          fileCount: apiCollection.fileCount,
+          createdAt: apiCollection.createdAt,
+        }))
+        
+        console.log("Mapped collections:", mappedCollections)
+        setCollectionsData(mappedCollections)
+      } catch (error) {
+        console.error("Error fetching collections:", error)
+        if (error instanceof Error) {
+          console.error("Error message:", error.message)
+          console.error("Error stack:", error.stack)
+        }
+        toast.error("Failed to load collections")
+        setCollectionsData([])
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchCollections()
+  }, [])
+
   // Column definitions
   const columns: ColumnDef<Collection>[] = [
     {
@@ -199,7 +218,7 @@ export default function CollectionsPage() {
       ),
     },
     {
-      accessorKey: "documentCount",
+      accessorKey: "fileCount",
       header: ({ column }) => {
         return (
           <Button
@@ -207,15 +226,15 @@ export default function CollectionsPage() {
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             className="h-8 px-2 font-medium"
           >
-            Document Count
+            File Count
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         )
       },
-      cell: ({ row }) => <div>{row.getValue("documentCount")}</div>,
+      cell: ({ row }) => <div>{row.getValue("fileCount")}</div>,
     },
     {
-      accessorKey: "createdDate",
+      accessorKey: "createdAt",
       header: ({ column }) => {
         return (
           <Button
@@ -223,12 +242,15 @@ export default function CollectionsPage() {
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             className="h-8 px-2 font-medium"
           >
-            Created Date
+            Created At
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         )
       },
-      cell: ({ row }) => <div>{row.getValue("createdDate")}</div>,
+      cell: ({ row }) => {
+        const createdAt = row.getValue("createdAt") as string
+        return <div>{formatDate(createdAt)}</div>
+      },
     },
     {
       id: "actions",
@@ -265,12 +287,18 @@ export default function CollectionsPage() {
             <Button onClick={() => setCreateDialogOpen(true)}>Add Collection</Button>
           </div>
 
-          <DataTable
-            columns={columns}
-            data={collectionsData}
-            searchable={true}
-            pageSize={5}
-          />
+          {isLoading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-muted-foreground">Loading collections...</div>
+            </div>
+          ) : (
+            <DataTable
+              columns={columns}
+              data={collectionsData}
+              searchable={true}
+              pageSize={5}
+            />
+          )}
         </div>
       </div>
 
