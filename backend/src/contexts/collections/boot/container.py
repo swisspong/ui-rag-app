@@ -5,6 +5,7 @@ from src.contexts.collections.infrastructure.repositories.postgres_collection_fi
 from src.contexts.collections.application.queries.collection_name_exists.collection_name_exsits_query import CollectionNameExistsQuery
 from src.contexts.collections.application.queries.get_collection_list.get_collection_list_query import GetCollectionListQuery
 from src.contexts.collections.application.queries.get_files_in_collection.get_files_in_collection_query import GetFilesInCollectionQuery
+from src.contexts.collections.application.queries.get_collection.get_collection_query import GetCollectionQuery
 from src.contexts.collections.application.commands.create_collection.create_collection_handler import CreateCollectionHandler
 from src.contexts.collections.application.commands.upload_files_for_collection.upload_files_handler import UploadFilesHandler
 from src.contexts.collections.application.policies.embedding_validation import EmbeddingValidation
@@ -71,6 +72,11 @@ class CollectionContainer(containers.DeclarativeContainer):
 
     get_files_in_collection_query = providers.Factory(
         GetFilesInCollectionQuery,
+        collection_read_repository=collection_read_repository,
+    )
+
+    get_collection_query = providers.Factory(
+        GetCollectionQuery,
         collection_read_repository=collection_read_repository,
     )
 

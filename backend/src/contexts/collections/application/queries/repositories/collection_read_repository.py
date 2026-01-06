@@ -23,3 +23,7 @@ class CollectionReadRepository(ABC):
     @abstractmethod
     async def get_files_in_collection(self, collection_id: CollectionID, conn: Any = None) -> List[CollectionFileReadModel]:
         pass
+    
+    @abstractmethod
+    async def get_by_id(self, collection_id: CollectionID, conn: Any = None) -> CollectionReadModel | None:
+        pass

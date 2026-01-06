@@ -18,6 +18,7 @@ from src.contexts.collections.infrastructure.sql.exists_by_name_collection impor
 from src.contexts.collections.infrastructure.sql.get_collection_list import GET_COLLECTION_LIST
 from src.contexts.collections.infrastructure.sql.count_collections import COUNT_COLLECTIONS
 from src.contexts.collections.infrastructure.sql.get_files_in_collection import GET_FILES_IN_COLLECTION
+from src.contexts.collections.infrastructure.sql.get_collection import GET_COLLECTION
 from src.shared.infrastructure.errors import QueryFailed, DatabaseError
 
 
@@ -108,3 +109,25 @@ class PostgresCollectionReadRepository(CollectionReadRepository):
             return files
         except DatabaseError as e:
             raise QueryFailed("GET_FILES_IN_COLLECTION", e) from e
+
+    async def get_by_id(self, collection_id: CollectionID, conn: Any = None) -> CollectionReadModel | None:
+        try:
+            row = await self._db.fetchrow(
+                GET_COLLECTION,
+                collection_id.value,
+                conn=conn,
+            )
+
+            if row is None:
+                return None
+
+            return CollectionReadModel(
+                id=row['id'],
+                name=row['name'],
+                description=row['description'],
+                file_count=row['file_count'],
+                created_at=row['created_at'].replace(tzinfo=timezone.utc),
+                updated_at=row['updated_at'].replace(tzinfo=timezone.utc)
+            )
+        except DatabaseError as e:
+            raise QueryFailed("GET_COLLECTION", e) from e

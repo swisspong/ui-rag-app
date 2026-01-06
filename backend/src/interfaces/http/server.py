@@ -20,6 +20,7 @@ async def lifespan(app: FastAPI):
     container.wire(modules=[
         "src.contexts.collections.interfaces.http.router.create_collection",
         "src.contexts.collections.interfaces.http.router.get_collection_list",
+        "src.contexts.collections.interfaces.http.router.get_collection",
         "src.contexts.collections.interfaces.http.router.get_files_in_collection",
         "src.contexts.collections.interfaces.http.router.upload_files",
         "src.contexts.rag.interfaces.http.router.process_ocr",
