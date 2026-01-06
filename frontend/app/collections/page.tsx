@@ -18,8 +18,8 @@ import { EditAction } from "@/components/edit-action"
 import { ActionsDropdown } from "@/components/actions-dropdown"
 import { CollectionFormDialog } from "@/components/collections"
 import { type CollectionFormData } from "@/components/collections"
-import { getCollections } from "@/lib/services"
-import type { Collection as ApiCollection } from "@/lib/types/collection.types"
+import { getCollections, createCollection } from "@/lib/services"
+import type { Collection as ApiCollection, CreateCollectionRequest } from "@/lib/types/collection.types"
 
 // Helper function to format date with standard English format and robust timezone handling
 const formatDate = (dateString: string | null | undefined): string => {
@@ -74,21 +74,76 @@ export default function CollectionsPage() {
   const [editingCollection, setEditingCollection] = React.useState<Collection | null>(null)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
+  // Fetch collections function with optional loading state control
+  const fetchCollections = async (showLoading: boolean = true) => {
+    if (showLoading) {
+      setIsLoading(true)
+    }
+    try {
+      console.log("Fetching collections...")
+      const response = await getCollections()
+      console.log("API Response:", response)
+      console.log("Response data type:", typeof response.data)
+      console.log("Response data:", response.data)
+      console.log("Is data an array?", Array.isArray(response.data))
+      
+      // Check if response.data exists and is an array
+      if (!response.data) {
+        console.error("Response data is null or undefined")
+        toast.error("Invalid API response: no data received")
+        setCollectionsData([])
+        return
+      }
+      
+      if (!Array.isArray(response.data)) {
+        console.error("Response data is not an array:", response.data)
+        toast.error("Invalid API response: data is not an array")
+        setCollectionsData([])
+        return
+      }
+      
+      // Map API response to UI interface
+      const mappedCollections: Collection[] = response.data.map((apiCollection: ApiCollection) => ({
+        id: apiCollection.id,
+        name: apiCollection.name,
+        description: apiCollection.description,
+        fileCount: apiCollection.fileCount,
+        createdAt: apiCollection.createdAt,
+      }))
+      
+      console.log("Mapped collections:", mappedCollections)
+      setCollectionsData(mappedCollections)
+    } catch (error) {
+      console.error("Error fetching collections:", error)
+      if (error instanceof Error) {
+        console.error("Error message:", error.message)
+        console.error("Error stack:", error.stack)
+      }
+      toast.error("Failed to load collections")
+      setCollectionsData([])
+    } finally {
+      if (showLoading) {
+        setIsLoading(false)
+      }
+    }
+  }
+
   const handleCreateCollection = async (data: CollectionFormData) => {
     setIsSubmitting(true)
     try {
       console.log("Creating collection:", data)
-      // TODO: Replace with actual API call
       
-      const newCollection: Collection = {
-        id: Date.now().toString(),
+      const request: CreateCollectionRequest = {
         name: data.name,
-        description: data.description || "",
-        fileCount: 0,
-        createdAt: new Date().toISOString().split('T')[0],
+        description: data.description,
       }
       
-      setCollectionsData([...collectionsData, newCollection])
+      const response = await createCollection(request)
+      console.log("API Response:", response)
+      
+      // Refetch collections after successful creation
+      await fetchCollections(false)
+      
       toast.success("Collection created successfully")
       setCreateDialogOpen(false)
     } catch (error) {
@@ -133,56 +188,7 @@ export default function CollectionsPage() {
 
   // Fetch collections on component mount
   React.useEffect(() => {
-    const fetchCollections = async () => {
-      setIsLoading(true)
-      try {
-        console.log("Fetching collections...")
-        const response = await getCollections()
-        console.log("API Response:", response)
-        console.log("Response data type:", typeof response.data)
-        console.log("Response data:", response.data)
-        console.log("Is data an array?", Array.isArray(response.data))
-        
-        // Check if response.data exists and is an array
-        if (!response.data) {
-          console.error("Response data is null or undefined")
-          toast.error("Invalid API response: no data received")
-          setCollectionsData([])
-          return
-        }
-        
-        if (!Array.isArray(response.data)) {
-          console.error("Response data is not an array:", response.data)
-          toast.error("Invalid API response: data is not an array")
-          setCollectionsData([])
-          return
-        }
-        
-        // Map API response to UI interface
-        const mappedCollections: Collection[] = response.data.map((apiCollection: ApiCollection) => ({
-          id: apiCollection.id,
-          name: apiCollection.name,
-          description: apiCollection.description,
-          fileCount: apiCollection.fileCount,
-          createdAt: apiCollection.createdAt,
-        }))
-        
-        console.log("Mapped collections:", mappedCollections)
-        setCollectionsData(mappedCollections)
-      } catch (error) {
-        console.error("Error fetching collections:", error)
-        if (error instanceof Error) {
-          console.error("Error message:", error.message)
-          console.error("Error stack:", error.stack)
-        }
-        toast.error("Failed to load collections")
-        setCollectionsData([])
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchCollections()
+    fetchCollections(true)
   }, [])
 
   // Column definitions

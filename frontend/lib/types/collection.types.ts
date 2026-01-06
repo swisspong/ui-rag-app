@@ -40,3 +40,25 @@ export interface GetCollectionsParams {
   sortBy?: 'name' | 'createdAt' | 'fileCount'
   sortOrder?: 'asc' | 'desc'
 }
+
+/**
+ * Request body for creating a collection
+ */
+export interface CreateCollectionRequest {
+  name: string
+  description?: string
+}
+
+/**
+ * Response data for creating a collection
+ */
+export interface CreateCollectionResponse {
+  data: {
+    id: string
+    name: string
+    description: string
+    documentCount: number
+    createdAt: string
+  }
+  message: string
+}

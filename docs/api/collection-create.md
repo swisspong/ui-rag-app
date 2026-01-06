@@ -66,7 +66,7 @@ The response body contains the created collection details in a `data` field, alo
 ### cURL
 
 ```bash
-curl -X POST http://localhost:3000/api/collections \
+curl -X POST http://localhost:8005/collections \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Product Documentation",

@@ -52,7 +52,7 @@ The response body contains the collection details in a `data` field, along with 
 ### cURL
 
 ```bash
-curl -X GET http://localhost:3000/api/collections/1
+curl -X GET http://localhost:8005/collections/1
 ```
 
 ## Example Success Response

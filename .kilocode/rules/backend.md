@@ -8,3 +8,10 @@
 สร้าง command per file 
 โดยใน command มี command, input, output file ที่อยู่ใน application layer
 entities ใน domain เป็น dataclass ที่สามารถมี behavior ,value object ได้
+
+# Create Queries
+ 
+ภาษา python
+
+สร้าง query per file
+โดยใน query มี query, input ,output file ที่อยู่ใน application layer และต้องมี read-models,repositories สำหรับ read side ใน application layer 
