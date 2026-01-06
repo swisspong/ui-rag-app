@@ -13,6 +13,7 @@ import {
 import { DocumentFormDialog } from "@/components/documents"
 import { DocumentEditDialog, type DocumentEditFormData } from "@/components/document-edit"
 import { type DocumentFormData, type FileOption } from "@/components/documents"
+import { useCollection } from "@/lib/hooks/useCollection"
 
 export default function DocumentsPage({
   params,
@@ -20,14 +21,8 @@ export default function DocumentsPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = React.use(params)
+  const { collection, isLoading, error } = useCollection(id)
   
-  // Mock collection data - in real app, this would be fetched based on params.id
-  const collectionData = {
-    id: id,
-    name: "Product Documentation",
-    description: "All product manuals and user guides",
-  }
-
   // Dialog state
   const [isDialogOpen, setIsDialogOpen] = React.useState(false)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
@@ -95,16 +90,54 @@ export default function DocumentsPage({
     setIsEditDialogOpen(true)
   }
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden">
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-4 lg:p-6 space-y-6">
+            <div className="flex items-center justify-center h-64">
+              <p className="text-muted-foreground">Loading collection...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden">
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-4 lg:p-6 space-y-6">
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <p className="text-destructive font-medium">Error loading collection</p>
+                <p className="text-muted-foreground mt-2">{error}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Show content when collection is loaded
+  if (!collection) {
+    return null
+  }
+
   return (
     <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden">
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto">
         <div className="p-4 lg:p-6 space-y-6">
           {/* Collection Header with Tabs */}
-          <CollectionHeader 
+          <CollectionHeader
             collectionId={id}
-            name={collectionData.name}
-            description={collectionData.description}
+            name={collection.name}
+            description={collection.description}
           />
 
           {/* Documents Section */}

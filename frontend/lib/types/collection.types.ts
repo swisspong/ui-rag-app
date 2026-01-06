@@ -62,3 +62,11 @@ export interface CreateCollectionResponse {
   }
   message: string
 }
+
+/**
+ * Response data for getting a single collection
+ */
+export interface GetCollectionResponse {
+  data: Collection
+  message: string
+}

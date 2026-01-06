@@ -13,6 +13,7 @@ import {
   type DocumentChunkFormValues
 } from "@/components/document-chunk"
 import { toast } from "sonner"
+import { useCollection } from "@/lib/hooks/useCollection"
 
 export default function DocumentChunkPage({
   params,
@@ -20,28 +21,60 @@ export default function DocumentChunkPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = React.use(params)
+  const { collection, isLoading, error } = useCollection(id)
   
   // Dialog state
   const [isDialogOpen, setIsDialogOpen] = React.useState(false)
-  const [isLoading, setIsLoading] = React.useState(false)
-  
-  // Mock collection data - in real app, this would be fetched based on params.id
-  const collectionData = {
-    id: id,
-    name: "Product Documentation",
-    description: "All product manuals and user guides",
-  }
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   const handleAddDocumentChunk = async (data: DocumentChunkFormValues) => {
     console.log("Submitted document chunk data:", data)
-    setIsLoading(true)
+    setIsSubmitting(true)
     
     // Simulate async operation
     await new Promise(resolve => setTimeout(resolve, 1000))
     
-    setIsLoading(false)
+    setIsSubmitting(false)
     setIsDialogOpen(false)
     toast.success("Successfully added document chunk for document ID: " + data.documentId)
+  }
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden">
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-4 lg:p-6 space-y-6">
+            <div className="flex items-center justify-center h-64">
+              <p className="text-muted-foreground">Loading collection...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden">
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-4 lg:p-6 space-y-6">
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <p className="text-destructive font-medium">Error loading collection</p>
+                <p className="text-muted-foreground mt-2">{error}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Show content when collection is loaded
+  if (!collection) {
+    return null
   }
 
   return (
@@ -50,10 +83,10 @@ export default function DocumentChunkPage({
       <div className="flex-1 overflow-y-auto">
         <div className="p-4 lg:p-6 space-y-6">
           {/* Collection Header with Tabs */}
-          <CollectionHeader 
+          <CollectionHeader
             collectionId={id}
-            name={collectionData.name}
-            description={collectionData.description}
+            name={collection.name}
+            description={collection.description}
           />
 
           {/* Document Chunks Section */}
@@ -81,7 +114,7 @@ export default function DocumentChunkPage({
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
         onSubmit={handleAddDocumentChunk}
-        isLoading={isLoading}
+        isLoading={isSubmitting}
       />
     </div>
   )

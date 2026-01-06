@@ -1,7 +1,9 @@
 import type {
+  Collection,
   CollectionListResponse,
   CreateCollectionRequest,
   CreateCollectionResponse,
+  GetCollectionResponse,
   GetCollectionsParams,
 } from '@/lib/types/collection.types'
 
@@ -145,9 +147,56 @@ export async function createCollection(
 }
 
 /**
+ * Get a single collection by ID
+ *
+ * @param id - The unique identifier of the collection
+ * @returns Promise resolving to GetCollectionResponse
+ * @throws ApiError if the request fails
+ */
+export async function getCollection(
+  id: string
+): Promise<GetCollectionResponse> {
+  const url = `${API_BASE_URL}/collections/${id}`
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store', // Disable caching for fresh data
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new ApiError(
+        data.message || 'Failed to fetch collection',
+        response.status,
+        data
+      )
+    }
+
+    return data as GetCollectionResponse
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error
+    }
+
+    // Handle network errors or other unexpected errors
+    throw new ApiError(
+      error instanceof Error ? error.message : 'An unexpected error occurred',
+      undefined,
+      undefined
+    )
+  }
+}
+
+/**
  * Collection service object with all collection-related API methods
  */
 export const collectionService = {
   getCollections,
   createCollection,
+  getCollection,
 }

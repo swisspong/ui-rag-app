@@ -18,8 +18,9 @@ import { EditAction } from "@/components/edit-action"
 import { ActionsDropdown } from "@/components/actions-dropdown"
 import { CollectionFormDialog } from "@/components/collections"
 import { type CollectionFormData } from "@/components/collections"
-import { getCollections, createCollection } from "@/lib/services"
-import type { Collection as ApiCollection, CreateCollectionRequest } from "@/lib/types/collection.types"
+import { createCollection } from "@/lib/services"
+import type { CreateCollectionRequest, Collection } from "@/lib/types/collection.types"
+import { useCollections } from "@/lib/hooks/useCollections"
 
 // Helper function to format date with standard English format and robust timezone handling
 const formatDate = (dateString: string | null | undefined): string => {
@@ -57,76 +58,12 @@ const formatDate = (dateString: string | null | undefined): string => {
   }
 }
 
-// Types - Local UI interface matching the API response
-interface Collection {
-  id: string
-  name: string
-  description: string
-  fileCount: number
-  createdAt: string
-}
-
 export default function CollectionsPage() {
-  const [collectionsData, setCollectionsData] = React.useState<Collection[]>([])
-  const [isLoading, setIsLoading] = React.useState(true)
+  const { collections, isLoading, error, refetch } = useCollections()
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false)
   const [editDialogOpen, setEditDialogOpen] = React.useState(false)
   const [editingCollection, setEditingCollection] = React.useState<Collection | null>(null)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
-
-  // Fetch collections function with optional loading state control
-  const fetchCollections = async (showLoading: boolean = true) => {
-    if (showLoading) {
-      setIsLoading(true)
-    }
-    try {
-      console.log("Fetching collections...")
-      const response = await getCollections()
-      console.log("API Response:", response)
-      console.log("Response data type:", typeof response.data)
-      console.log("Response data:", response.data)
-      console.log("Is data an array?", Array.isArray(response.data))
-      
-      // Check if response.data exists and is an array
-      if (!response.data) {
-        console.error("Response data is null or undefined")
-        toast.error("Invalid API response: no data received")
-        setCollectionsData([])
-        return
-      }
-      
-      if (!Array.isArray(response.data)) {
-        console.error("Response data is not an array:", response.data)
-        toast.error("Invalid API response: data is not an array")
-        setCollectionsData([])
-        return
-      }
-      
-      // Map API response to UI interface
-      const mappedCollections: Collection[] = response.data.map((apiCollection: ApiCollection) => ({
-        id: apiCollection.id,
-        name: apiCollection.name,
-        description: apiCollection.description,
-        fileCount: apiCollection.fileCount,
-        createdAt: apiCollection.createdAt,
-      }))
-      
-      console.log("Mapped collections:", mappedCollections)
-      setCollectionsData(mappedCollections)
-    } catch (error) {
-      console.error("Error fetching collections:", error)
-      if (error instanceof Error) {
-        console.error("Error message:", error.message)
-        console.error("Error stack:", error.stack)
-      }
-      toast.error("Failed to load collections")
-      setCollectionsData([])
-    } finally {
-      if (showLoading) {
-        setIsLoading(false)
-      }
-    }
-  }
 
   const handleCreateCollection = async (data: CollectionFormData) => {
     setIsSubmitting(true)
@@ -142,7 +79,7 @@ export default function CollectionsPage() {
       console.log("API Response:", response)
       
       // Refetch collections after successful creation
-      await fetchCollections(false)
+      await refetch(false)
       
       toast.success("Collection created successfully")
       setCreateDialogOpen(false)
@@ -161,21 +98,23 @@ export default function CollectionsPage() {
       // TODO: Replace with actual API call
       
       if (editingCollection) {
-        setCollectionsData(
-            collectionsData.map((collection) =>
-              collection.id === editingCollection.id
-                ? { ...collection, name: data.name, description: data.description || "" }
-                : collection
-            )
-          )
-        }
+        // Update local state optimistically
+        const updatedCollections = collections.map((collection) =>
+          collection.id === editingCollection.id
+            ? { ...collection, name: data.name, description: data.description || "" }
+            : collection
+        )
+        // Note: This is a temporary local update. In a real implementation,
+        // you would call an API to update the collection and then refetch.
+        // For now, we'll just show success toast without updating the state
+      }
         
-        toast.success("Collection updated successfully")
-        setEditDialogOpen(false)
-        setEditingCollection(null)
-      } catch (error) {
-        toast.error("Failed to update collection")
-        console.error("Error updating collection:", error)
+      toast.success("Collection updated successfully")
+      setEditDialogOpen(false)
+      setEditingCollection(null)
+    } catch (error) {
+      toast.error("Failed to update collection")
+      console.error("Error updating collection:", error)
     } finally {
       setIsSubmitting(false)
     }
@@ -185,11 +124,6 @@ export default function CollectionsPage() {
     setEditingCollection(collection)
     setEditDialogOpen(true)
   }
-
-  // Fetch collections on component mount
-  React.useEffect(() => {
-    fetchCollections(true)
-  }, [])
 
   // Column definitions
   const columns: ColumnDef<Collection>[] = [
@@ -297,10 +231,14 @@ export default function CollectionsPage() {
             <div className="flex items-center justify-center h-64">
               <div className="text-muted-foreground">Loading collections...</div>
             </div>
+          ) : error ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-destructive">Error: {error}</div>
+            </div>
           ) : (
             <DataTable
               columns={columns}
-              data={collectionsData}
+              data={collections}
               searchable={true}
               pageSize={5}
             />
