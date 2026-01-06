@@ -18,7 +18,9 @@ from src.contexts.collections.infrastructure.sql.exists_by_name_collection impor
 from src.contexts.collections.infrastructure.sql.get_collection_list import GET_COLLECTION_LIST
 from src.contexts.collections.infrastructure.sql.count_collections import COUNT_COLLECTIONS
 from src.contexts.collections.infrastructure.sql.get_files_in_collection import GET_FILES_IN_COLLECTION
+from src.contexts.collections.infrastructure.sql.count_files_in_collection import COUNT_FILES_IN_COLLECTION
 from src.contexts.collections.infrastructure.sql.get_collection import GET_COLLECTION
+from src.contexts.collections.application.queries.get_files_in_collection.get_files_in_collection_input import GetFilesInCollectionInput
 from src.shared.infrastructure.errors import QueryFailed, DatabaseError
 
 
@@ -85,28 +87,41 @@ class PostgresCollectionReadRepository(CollectionReadRepository):
         except DatabaseError as e:
             raise QueryFailed("GET_COLLECTION_LIST_WITH_COUNT", e) from e
 
-    async def get_files_in_collection(self, collection_id: CollectionID, conn: Any = None) -> List[CollectionFileReadModel]:
+    async def get_files_in_collection(self, input_data: GetFilesInCollectionInput, conn: Any = None) -> Tuple[List[CollectionFileReadModel], int]:
         try:
+            # Get the files with pagination
             rows = await self._db.fetch(
                 GET_FILES_IN_COLLECTION,
-                collection_id.value,
+                input_data.collection_id.value,
+                input_data.search,
+                input_data.order_by,
+                input_data.limit,
+                input_data.offset,
                 conn=conn,
             )
 
             files = []
             for row in rows:
                 file = CollectionFileReadModel(
-                    collection_file_id=row['collection_file_id'],
+                    id=row['id'],
                     filename=row['filename'],
                     size=row['size'],
-                    asset_id=row['asset_id'],
-                    created_at=row['created_at'],
-                    current_stage=row['current_stage'],
-                    status=row['status']
+                    type=row['content_type'],
+                    created_at=row['created_at']
                 )
                 files.append(file)
 
-            return files
+            # Get the total count
+            count_row = await self._db.fetchrow(
+                COUNT_FILES_IN_COLLECTION,
+                input_data.collection_id.value,
+                input_data.search,
+                conn=conn,
+            )
+
+            total_count = count_row['total_count'] if count_row else 0
+
+            return files, total_count
         except DatabaseError as e:
             raise QueryFailed("GET_FILES_IN_COLLECTION", e) from e
 

@@ -1,9 +1,11 @@
-from fastapi import Depends, status
+from fastapi import Depends, status, Query
+from typing import Optional
 from dependency_injector.wiring import inject, Provide
+import math
 
 from src.contexts.collections.interfaces.http.schema.get_files_in_collection import (
     CollectionFileResponse,
-    DataWrapper,
+    FilesListMeta,
     GetFilesInCollectionResponse
 )
 from src.contexts.collections.application.queries.get_files_in_collection.get_files_in_collection_query import GetFilesInCollectionQuery
@@ -17,13 +19,11 @@ from . import router
 def _map_read_model_to_response(read_model: CollectionFileReadModel) -> CollectionFileResponse:
     """Maps a CollectionFileReadModel to a CollectionFileResponse."""
     return CollectionFileResponse(
-        collection_file_id=read_model.collection_file_id,
-        filename=read_model.filename,
+        id=read_model.id,
+        name=read_model.filename,
         size=read_model.size,
-        asset_id=read_model.asset_id,
-        created_at=read_model.created_at,
-        current_stage=read_model.current_stage,
-        status="in progress" if read_model.status == "running" else read_model.status
+        type=read_model.type,
+        created_at=read_model.created_at
     )
 
 
@@ -32,27 +32,53 @@ def _map_read_model_to_response(read_model: CollectionFileReadModel) -> Collecti
     response_model=GetFilesInCollectionResponse,
     status_code=status.HTTP_200_OK,
     summary="Get files in a collection",
-    description="Retrieves all files associated with a specific collection"
+    description="Retrieves a paginated list of files associated with a specific collection"
 )
 @inject
 async def get_files_in_collection(
     collection_id: str,
+    search: Optional[str] = Query(None, description="Search term to filter files by filename"),
+    order_by: str = Query("created_at", description="Field to order by (created_at, filename)"),
+    limit: int = Query(20, ge=1, le=100, description="Number of items per page"),
+    page: int = Query(1, ge=1, description="Page number"),
     get_files_in_collection_query: GetFilesInCollectionQuery = Depends(
         Provide[ApplicationContainer.collection_package.get_files_in_collection_query]),
 ) -> GetFilesInCollectionResponse:
 
+    # Calculate offset from page and limit
+    offset = (page - 1) * limit
+
     input_data = GetFilesInCollectionInput(
-        collection_id=CollectionID.from_value(collection_id)
+        collection_id=CollectionID.from_value(collection_id),
+        search=search,
+        order_by=order_by,
+        limit=limit,
+        offset=offset
     )
 
     result = await get_files_in_collection_query.execute(input_data)
+    
     # Map the read models to response models
     file_responses = [
-        _map_read_model_to_response(file) 
-        for file in result
+        _map_read_model_to_response(file)
+        for file in result.files
     ]
 
-    # Create the response
+    # Calculate pagination metadata
+    total_pages = math.ceil(result.total_count / limit) if result.total_count > 0 else 0
+    has_next_page = page < total_pages
+    has_previous_page = page > 1
+
+    # Create the response with data list and metadata
     return GetFilesInCollectionResponse(
-        data=DataWrapper(files=file_responses)
+        data=file_responses,
+        metadata=FilesListMeta(
+            total=result.total_count,
+            limit=limit,
+            page=page,
+            total_pages=total_pages,
+            search=search,
+            has_next_page=has_next_page,
+            has_previous_page=has_previous_page
+        )
     )

@@ -57,5 +57,5 @@ class GetCollectionListResponse(BaseModel):
 
     data: List[CollectionResponse] = Field(...,
                                            description="Data containing the list of collections")
-    meta: CollectionListMeta = Field(...,
+    metadata: CollectionListMeta = Field(...,
                                      description="Metadata about the pagination and search")

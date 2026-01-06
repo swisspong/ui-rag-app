@@ -1,10 +1,15 @@
 import type {
   Collection,
+  CollectionFile,
   CollectionListResponse,
   CreateCollectionRequest,
   CreateCollectionResponse,
+  FileMetadata,
   GetCollectionResponse,
   GetCollectionsParams,
+  GetFilesInCollectionParams,
+  GetFilesInCollectionResponse,
+  UploadFilesResponse,
 } from '@/lib/types/collection.types'
 
 /**
@@ -193,10 +198,140 @@ export async function getCollection(
 }
 
 /**
+ * Upload multiple files to a collection
+ *
+ * @param collectionId - The unique identifier of the collection
+ * @param files - Array of File objects to upload
+ * @returns Promise resolving to UploadFilesResponse
+ * @throws ApiError if the request fails
+ */
+export async function uploadFiles(
+  collectionId: string,
+  files: File[]
+): Promise<UploadFilesResponse> {
+  const url = `${API_BASE_URL}/collections/${collectionId}/files`
+
+  try {
+    const formData = new FormData()
+    
+    // Append each file to FormData with field name "files"
+    files.forEach((file) => {
+      formData.append('files', file)
+    })
+
+    const response = await fetch(url, {
+      method: 'POST',
+      body: formData,
+      // Note: Do not set Content-Type header when using FormData,
+      // the browser will set it automatically with the correct boundary
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new ApiError(
+        data.message || 'Failed to upload files',
+        response.status,
+        data
+      )
+    }
+
+    return data as UploadFilesResponse
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error
+    }
+
+    // Handle network errors or other unexpected errors
+    throw new ApiError(
+      error instanceof Error ? error.message : 'An unexpected error occurred',
+      undefined,
+      undefined
+    )
+  }
+}
+
+/**
+ * Build query string for files in collection parameters
+ */
+function buildFilesQueryString(params: Omit<GetFilesInCollectionParams, 'collectionId'>): string {
+  const queryParams = new URLSearchParams()
+
+  if (params.page !== undefined) {
+    queryParams.append('page', params.page.toString())
+  }
+  if (params.limit !== undefined) {
+    queryParams.append('limit', params.limit.toString())
+  }
+  if (params.search !== undefined && params.search !== '') {
+    queryParams.append('search', params.search)
+  }
+  if (params.sortBy !== undefined) {
+    queryParams.append('sortBy', params.sortBy)
+  }
+  if (params.sortOrder !== undefined) {
+    queryParams.append('sortOrder', params.sortOrder)
+  }
+
+  const queryString = queryParams.toString()
+  return queryString ? `?${queryString}` : ''
+}
+
+/**
+ * Get files in a collection
+ *
+ * @param params - Parameters including collectionId and optional query parameters
+ * @returns Promise resolving to GetFilesInCollectionResponse
+ * @throws ApiError if the request fails
+ */
+export async function getFilesInCollection(
+  params: GetFilesInCollectionParams
+): Promise<GetFilesInCollectionResponse> {
+  const { collectionId, ...queryParams } = params
+  const queryString = buildFilesQueryString(queryParams)
+  const url = `${API_BASE_URL}/collections/${collectionId}/files${queryString}`
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store', // Disable caching for fresh data
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new ApiError(
+        data.message || 'Failed to fetch files in collection',
+        response.status,
+        data
+      )
+    }
+
+    return data as GetFilesInCollectionResponse
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error
+    }
+
+    // Handle network errors or other unexpected errors
+    throw new ApiError(
+      error instanceof Error ? error.message : 'An unexpected error occurred',
+      undefined,
+      undefined
+    )
+  }
+}
+
+/**
  * Collection service object with all collection-related API methods
  */
 export const collectionService = {
   getCollections,
   createCollection,
   getCollection,
+  uploadFiles,
+  getFilesInCollection,
 }

@@ -1,21 +1,41 @@
-from typing import List
+from typing import List, Optional
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
+from pydantic.alias_generators import to_camel
 
 
 class CollectionFileResponse(BaseModel):
-    collection_file_id: str = Field(..., description="Unique identifier for the collection file")
-    filename: str = Field(..., description="Name of the file")
+    model_config = ConfigDict(
+        alias_generator=to_camel,
+        populate_by_name=True
+    )
+    id: str = Field(..., description="Unique identifier for the collection file")
+    name: str = Field(..., description="Name of the file")
     size: int = Field(..., description="Size of the file in bytes")
-    asset_id: str = Field(..., description="Asset identifier for the file")
+    type: str = Field(..., description="Type of the file")
     created_at: datetime = Field(..., description="Timestamp when the file was created")
-    current_stage: str = 'upload'
-    status: str = 'completed'
 
 
-class DataWrapper(BaseModel):
-    files: List[CollectionFileResponse] = Field(..., description="List of files in the collection")
+class FilesListMeta(BaseModel):
+    model_config = ConfigDict(
+        alias_generator=to_camel,
+        populate_by_name=True
+    )
+    total: int = Field(
+        ..., description="Total number of files available")
+    limit: int = Field(...,
+                       description="Maximum number of files returned in this response")
+    page: int = Field(...,
+                      description="Current page number")
+    total_pages: int = Field(..., description="Total number of pages")
+    search: Optional[str] = Field(
+        None, description="Search term used to filter files")
+    has_next_page: bool
+    has_previous_page: bool
 
 
 class GetFilesInCollectionResponse(BaseModel):
-    data: DataWrapper = Field(..., description="Data wrapper containing files")
+    data: List[CollectionFileResponse] = Field(...,
+                                               description="Data containing the list of files")
+    metadata: FilesListMeta = Field(...,
+                                description="Metadata about the pagination and search")

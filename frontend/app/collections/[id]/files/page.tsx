@@ -1,17 +1,15 @@
 "use client"
 
 import * as React from "react"
-import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { DataTable } from "@/components/ui/data-table"
 import {
   CollectionHeader,
-  mockFiles,
-  fileColumns
+  collectionFileColumns
 } from "../collection-data"
 import { FileUploadDialog } from "@/components/files/file-upload-dialog"
 import { type FileUploadFormData } from "@/components/files/file-schema"
-import { useCollection } from "@/lib/hooks/useCollection"
+import { useCollection, useUploadFiles, useGetFiles } from "@/lib/hooks"
 
 export default function FilesPage({
   params,
@@ -20,28 +18,25 @@ export default function FilesPage({
 }) {
   const { id } = React.use(params)
   const [uploadDialogOpen, setUploadDialogOpen] = React.useState(false)
-  const [isUploading, setIsUploading] = React.useState(false)
-  const { collection, isLoading, error } = useCollection(id)
+  const { collection, isLoading: isLoadingCollection, error: collectionError } = useCollection(id)
+  const { uploadFiles, isUploading } = useUploadFiles(id)
+  const { files, isLoading: isLoadingFiles, error: filesError, refetch } = useGetFiles({
+    collectionId: id,
+    page: 1,
+    limit: 10
+  })
 
   const handleFileUpload = async (data: FileUploadFormData) => {
-    setIsUploading(true)
-    try {
-      // Mock upload - in real app, this would be an API call
-      console.log("Uploading files:", data.files)
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      console.log("Files uploaded successfully!")
-      toast.success("Files uploaded successfully")
+    const response = await uploadFiles(data.files)
+    if (response) {
       setUploadDialogOpen(false)
-    } catch (error) {
-      toast.error("Failed to upload files")
-      console.error("Error uploading files:", error)
-    } finally {
-      setIsUploading(false)
+      // Refetch files after successful upload
+      refetch()
     }
   }
 
   // Show loading state
-  if (isLoading) {
+  if (isLoadingCollection || isLoadingFiles) {
     return (
       <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden">
         <div className="flex-1 overflow-y-auto">
@@ -56,7 +51,7 @@ export default function FilesPage({
   }
 
   // Show error state
-  if (error) {
+  if (collectionError) {
     return (
       <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden">
         <div className="flex-1 overflow-y-auto">
@@ -64,7 +59,33 @@ export default function FilesPage({
             <div className="flex items-center justify-center h-64">
               <div className="text-center">
                 <p className="text-destructive font-medium">Error loading collection</p>
-                <p className="text-muted-foreground mt-2">{error}</p>
+                <p className="text-muted-foreground mt-2">{collectionError}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state for files
+  if (filesError && collection) {
+    return (
+      <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden">
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-4 lg:p-6 space-y-6">
+            <CollectionHeader
+              collectionId={id}
+              name={collection.name}
+              description={collection.description}
+            />
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <p className="text-destructive font-medium">Error loading files</p>
+                <p className="text-muted-foreground mt-2">{filesError}</p>
+                <Button onClick={() => refetch()} className="mt-4">
+                  Retry
+                </Button>
               </div>
             </div>
           </div>
@@ -104,8 +125,8 @@ export default function FilesPage({
               </Button>
             </div>
             <DataTable
-              columns={fileColumns}
-              data={mockFiles}
+              columns={collectionFileColumns}
+              data={files}
               searchable={true}
               pageSize={5}
             />

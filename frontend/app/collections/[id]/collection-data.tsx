@@ -349,6 +349,83 @@ export const fileColumns: ColumnDef<File>[] = [
   },
 ]
 
+// Column definitions for CollectionFile (API type)
+export const collectionFileColumns: ColumnDef<import("@/lib/types/collection.types").CollectionFile>[] = [
+  {
+    accessorKey: "name",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="h-8 px-2 font-medium"
+        >
+          Name
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
+    cell: ({ row }) => (
+      <div className="font-medium">{row.getValue("name")}</div>
+    ),
+  },
+  {
+    accessorKey: "type",
+    header: "Type",
+    cell: ({ row }) => <div>{row.getValue("type")}</div>,
+  },
+  {
+    accessorKey: "size",
+    header: "Size",
+    cell: ({ row }) => {
+      const size = row.getValue("size") as number
+      // Convert bytes to human-readable format
+      const formattedSize = size < 1024
+        ? `${size} B`
+        : size < 1024 * 1024
+        ? `${(size / 1024).toFixed(1)} KB`
+        : `${(size / (1024 * 1024)).toFixed(1)} MB`
+      return <div>{formattedSize}</div>
+    },
+  },
+  {
+    accessorKey: "createdAt",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="h-8 px-2 font-medium"
+        >
+          Uploaded Date
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
+    cell: ({ row }) => {
+      const createdAt = row.getValue("createdAt") as string
+      // Format date to YYYY-MM-DD
+      const formattedDate = new Date(createdAt).toISOString().split('T')[0]
+      return <div>{formattedDate}</div>
+    },
+  },
+  {
+    id: "actions",
+    header: "Action",
+    cell: ({ row }) => {
+      const file = row.original
+      return (
+        <ActionsDropdown>
+          <DeleteAction
+            onClick={() => { /* TODO: Implement delete handler */ }}
+            variant="destructive"
+          />
+        </ActionsDropdown>
+      )
+    },
+  },
+]
+
 // Column definitions for Documents
 export const documentColumns = (onEdit?: (document: Document) => void): ColumnDef<Document>[] => [
   {

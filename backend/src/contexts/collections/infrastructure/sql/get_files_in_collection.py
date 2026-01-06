@@ -1,15 +1,18 @@
 GET_FILES_IN_COLLECTION = """
 SELECT
-    cf.id as collection_file_id,
+    cf.id,
     a.filename,
     a.size,
-    cf.asset_id,
-    cf.created_at,
-    COALESCE(rp.current_stage, 'upload') as current_stage,
-    COALESCE(rp.status, 'completed') as status
+    a.content_type,
+    cf.created_at
 FROM collection_files cf
 INNER JOIN assets a ON cf.asset_id = a.id
-LEFT JOIN rag_process rp ON cf.id = rp.collection_file_id
 WHERE cf.collection_id = $1
-ORDER BY cf.created_at DESC
+AND ($2::text IS NULL OR a.filename ILIKE '%' || $2::text || '%')
+ORDER BY CASE
+    WHEN $3 = 'created_at' THEN cf.created_at::text
+    WHEN $3 = 'filename' THEN a.filename
+    ELSE cf.created_at::text
+END DESC
+LIMIT $4 OFFSET $5
 """

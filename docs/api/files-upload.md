@@ -53,7 +53,7 @@ POST /api/collections/{id}/files
       size: number
       type: string
       collectionId: string
-      uploadedAt: string
+      createdAt: string
     }>
     totalFiles: number
     collectionId: string
@@ -73,7 +73,7 @@ POST /api/collections/{id}/files
 | size         | number | File size in bytes |
 | type         | string | MIME type of the file |
 | collectionId | string | ID of the collection the file belongs to |
-| uploadedAt   | string | ISO 8601 timestamp of when the file was uploaded |
+| createdAt    | string | ISO 8601 timestamp of when the file was created |
 
 #### Metadata Fields
 
@@ -86,7 +86,7 @@ POST /api/collections/{id}/files
 ## Example Request
 
 ```bash
-curl -X POST http://localhost:3000/api/collections/1/files \
+curl -X POST http://localhost:8005/collections/1/files \
   -F "files=@document1.pdf" \
   -F "files=@document2.docx" \
   -F "files=@notes.txt"
@@ -106,7 +106,7 @@ curl -X POST http://localhost:3000/api/collections/1/files \
         "size": 1048576,
         "type": "application/pdf",
         "collectionId": "1",
-        "uploadedAt": "2024-01-15T10:30:00.000Z"
+        "createdAt": "2024-01-15T10:30:00.000Z"
       },
       {
         "id": "file_002",
@@ -114,7 +114,7 @@ curl -X POST http://localhost:3000/api/collections/1/files \
         "size": 524288,
         "type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "collectionId": "1",
-        "uploadedAt": "2024-01-15T10:30:00.000Z"
+        "createdAt": "2024-01-15T10:30:00.000Z"
       },
       {
         "id": "file_003",
@@ -122,7 +122,7 @@ curl -X POST http://localhost:3000/api/collections/1/files \
         "size": 1024,
         "type": "text/plain",
         "collectionId": "1",
-        "uploadedAt": "2024-01-15T10:30:00.000Z"
+        "createdAt": "2024-01-15T10:30:00.000Z"
       }
     ],
     "totalFiles": 3,

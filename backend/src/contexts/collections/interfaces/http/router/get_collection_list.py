@@ -64,7 +64,7 @@ async def get_collection_list(
     # Create the response
     return GetCollectionListResponse(
         data=collection_responses,
-        meta=CollectionListMeta(
+        metadata=CollectionListMeta(
             total=result.total_count,
             limit=request.limit,
             page=request.page,

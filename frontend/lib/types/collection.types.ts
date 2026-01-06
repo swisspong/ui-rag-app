@@ -70,3 +70,79 @@ export interface GetCollectionResponse {
   data: Collection
   message: string
 }
+
+/**
+ * Uploaded file entity type
+ */
+export interface UploadedFile {
+  id: string
+  name: string
+  size: number
+  type: string
+  collectionId: string
+  createdAt: string
+}
+
+/**
+ * Request parameters for uploading files to a collection
+ */
+export interface UploadFilesRequest {
+  collectionId: string
+  files: File[]
+}
+
+/**
+ * Response data for uploading files to a collection
+ */
+export interface UploadFilesResponse {
+  data: {
+    uploadedFiles: UploadedFile[]
+    totalFiles: number
+    collectionId: string
+  }
+  message: string
+}
+
+/**
+ * File entity type
+ */
+export interface CollectionFile {
+  id: string
+  name: string
+  type: string
+  size: number
+  createdAt: string
+}
+
+/**
+ * File metadata for pagination
+ */
+export interface FileMetadata {
+  page: number
+  limit: number
+  total: number
+  totalPages: number
+  hasNextPage: boolean
+  hasPreviousPage: boolean
+}
+
+/**
+ * API response for files list
+ */
+export interface GetFilesInCollectionResponse {
+  data: CollectionFile[]
+  metadata: FileMetadata
+  message: string
+}
+
+/**
+ * Query parameters for fetching files in a collection
+ */
+export interface GetFilesInCollectionParams {
+  collectionId: string
+  page?: number
+  limit?: number
+  search?: string
+  sortBy?: 'name' | 'size' | 'createdAt'
+  sortOrder?: 'asc' | 'desc'
+}

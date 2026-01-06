@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { useDebounce } from "@/lib/hooks/useDebounce"
 
 export interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -31,6 +32,11 @@ export interface DataTableProps<TData, TValue> {
   searchable?: boolean
   searchableColumns?: string[]
   pageSize?: number
+  onPageChange?: (pageIndex: number) => void
+  onFilterChange?: (searchQuery: string) => void
+  currentPage?: number
+  totalPages?: number
+  search?: string
 }
 
 export function DataTable<TData, TValue>({
@@ -39,36 +45,41 @@ export function DataTable<TData, TValue>({
   searchable = true,
   searchableColumns,
   pageSize = 5,
+  onPageChange,
+  onFilterChange,
+  currentPage = 1,
+  totalPages = 1,
+  search = ""
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-  const [pagination, setPagination] = React.useState<PaginationState>({
-    pageIndex: 0,
-    pageSize,
-  })
 
   const table = useReactTable({
     data,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
-    onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     state: {
       sorting,
       columnFilters,
-      pagination,
     },
   })
 
-  const [searchQuery, setSearchQuery] = React.useState("")
+  const [searchQuery, setSearchQuery] = React.useState(search)
+  const debouncedSearch = useDebounce(searchQuery, 500)
+  // React.useEffect(() => {
+  //   table.setGlobalFilter(searchQuery)
+  // }, [searchQuery, table])
 
+  // // Call onFilterChange callback when search query changes
   React.useEffect(() => {
-    table.setGlobalFilter(searchQuery)
-  }, [searchQuery, table])
+    if (onFilterChange && (debouncedSearch || debouncedSearch == "")) {
+      onFilterChange(searchQuery)
+    }
+  }, [debouncedSearch])
 
   return (
     <div className="space-y-4">
@@ -99,9 +110,9 @@ export function DataTable<TData, TValue>({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   )
                 })}
@@ -140,49 +151,55 @@ export function DataTable<TData, TValue>({
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between">
-        <div className="text-sm text-muted-foreground">
-          Showing {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} to{" "}
-          {Math.min(
-            (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
-            table.getFilteredRowModel().rows.length
-          )} of{" "}
-          {table.getFilteredRowModel().rows.length} results
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Previous
-          </Button>
-          <div className="flex items-center gap-1">
-            {Array.from({ length: table.getPageCount() }, (_, i) => i + 1).map(
-              (page) => (
-                <Button
-                  key={page}
-                  variant={table.getState().pagination.pageIndex === page - 1 ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => table.setPageIndex(page - 1)}
-                  className="w-8"
-                >
-                  {page}
-                </Button>
-              )
-            )}
+      {onPageChange && totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            Page {currentPage} of {totalPages}
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Next
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                console.log('[data-table] Previous button clicked, calling onPageChange with:', currentPage - 1)
+                onPageChange(currentPage - 1)
+              }}
+              disabled={currentPage <= 1}
+            >
+              Previous
+            </Button>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (pageNum) => (
+                  <Button
+                    key={pageNum}
+                    variant={currentPage === pageNum ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => {
+                      console.log('[data-table] Page button', pageNum, 'clicked, calling onPageChange with:', pageNum)
+                      onPageChange(pageNum)
+                    }}
+                    className="w-8"
+                  >
+                    {pageNum}
+                  </Button>
+                )
+              )}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                console.log('[data-table] Next button clicked, calling onPageChange with:', currentPage + 1)
+                onPageChange(currentPage + 1)
+              }}
+              disabled={currentPage >= totalPages}
+            >
+              Next
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
