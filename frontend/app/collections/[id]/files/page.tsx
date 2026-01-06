@@ -10,6 +10,7 @@ import {
 import { FileUploadDialog } from "@/components/files/file-upload-dialog"
 import { type FileUploadFormData } from "@/components/files/file-schema"
 import { useCollection, useUploadFiles, useGetFiles } from "@/lib/hooks"
+import { useSearchParams, useRouter, usePathname } from "next/navigation"
 
 export default function FilesPage({
   params,
@@ -20,11 +21,40 @@ export default function FilesPage({
   const [uploadDialogOpen, setUploadDialogOpen] = React.useState(false)
   const { collection, isLoading: isLoadingCollection, error: collectionError } = useCollection(id)
   const { uploadFiles, isUploading } = useUploadFiles(id)
-  const { files, isLoading: isLoadingFiles, error: filesError, refetch } = useGetFiles({
+  
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
+  const currentPage = Number(searchParams.get("page")) || 1
+  const search = searchParams.get("search") || ""
+
+  const queryParams = React.useMemo(() => ({
+    page: currentPage,
+    limit: 5,
+    search
+  }), [currentPage, search])
+
+  const { files, isLoading: isLoadingFiles, error: filesError, refetch, metadata } = useGetFiles({
     collectionId: id,
-    page: 1,
-    limit: 10
+    ...queryParams
   })
+
+  const handlePageChange = (pageIndex: number) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set("page", String(pageIndex))
+    router.push(`${pathname}?${params.toString()}`, { scroll: false })
+  }
+
+  const handleFilterChange = (searchQuery: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (searchQuery) {
+      params.set("search", searchQuery)
+    } else {
+      params.delete("search")
+    }
+    params.set("page", "1")
+    router.push(`${pathname}?${params.toString()}`, { scroll: false })
+  }
 
   const handleFileUpload = async (data: FileUploadFormData) => {
     const response = await uploadFiles(data.files)
@@ -128,7 +158,11 @@ export default function FilesPage({
               columns={collectionFileColumns}
               data={files}
               searchable={true}
-              pageSize={5}
+              onFilterChange={handleFilterChange}
+              onPageChange={handlePageChange}
+              currentPage={currentPage}
+              totalPages={metadata?.totalPages || 1}
+              search={search}
             />
           </div>
         </div>

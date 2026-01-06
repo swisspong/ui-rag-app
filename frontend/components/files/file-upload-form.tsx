@@ -76,14 +76,12 @@ export function FileUploadForm({
         )
       )
 
-      const newFiles = uniqueNewFiles.map((file) => ({
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        lastModified: file.lastModified,
-        id: Math.random().toString(36).substring(7),
-        preview: URL.createObjectURL(file),
-      })) as FileWithPreview[]
+      const newFiles = uniqueNewFiles.map((file) => {
+        const fileWithPreview = file as FileWithPreview
+        fileWithPreview.id = Math.random().toString(36).substring(7)
+        fileWithPreview.preview = URL.createObjectURL(file)
+        return fileWithPreview
+      })
 
       setFiles((prev) => {
         const updatedFiles = [...prev, ...newFiles]

@@ -71,7 +71,7 @@ export function useGetFiles(params: GetFilesInCollectionParams): UseGetFilesResu
     } finally {
       setIsLoading(false)
     }
-  }, [params])
+  }, [params?.page,params?.limit])
 
   React.useEffect(() => {
     let isMounted = true
@@ -85,7 +85,7 @@ export function useGetFiles(params: GetFilesInCollectionParams): UseGetFilesResu
     return () => {
       isMounted = false
     }
-  }, [fetchFiles])
+  }, [params?.page,params?.limit])
 
   return {
     files,

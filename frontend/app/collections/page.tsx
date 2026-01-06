@@ -1,16 +1,10 @@
 "use client"
 
 import * as React from "react"
-import {
-  MoreHorizontal,
-} from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
 import { useSearchParams, useRouter, usePathname } from "next/navigation"
-import {
-  flexRender,
-  ColumnDef,
-} from "@tanstack/react-table"
+import { ColumnDef } from "@tanstack/react-table"
 import { Button } from "@/components/ui/button"
 import { ArrowUpDown } from "lucide-react"
 import { DataTable } from "@/components/ui/data-table"
@@ -22,40 +16,29 @@ import { type CollectionFormData } from "@/components/collections"
 import { createCollection } from "@/lib/services"
 import type { CreateCollectionRequest, Collection } from "@/lib/types/collection.types"
 import { useCollections } from "@/lib/hooks/useCollections"
-import { useStableSearchParams } from "@/lib/hooks/useStableSearchParams"
 
 // Helper function to format date with standard English format and robust timezone handling
 const formatDate = (dateString: string | null | undefined): string => {
   if (!dateString) return "-"
 
   try {
-    // Parse the date string - this handles UTC dates correctly
-    // new Date() automatically parses ISO strings (e.g., "2024-01-15T10:00:00Z") as UTC
     const date = new Date(dateString)
 
-    // Check if date is valid
     if (isNaN(date.getTime())) {
-      console.warn("Invalid date string:", dateString)
       return "-"
     }
 
-    // Use Intl.DateTimeFormat with explicit timeZone parameter for robust timezone conversion
-    // This ensures the date is correctly converted from UTC to Asia/Bangkok (UTC+7)
     const formatter = new Intl.DateTimeFormat("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-      hour12: false, // Use 24-hour format for clarity
+      hour12: false,
     })
 
-    // Format the date with the Bangkok timezone
-    const formattedDate = formatter.format(date)
-
-    return formattedDate
+    return formatter.format(date)
   } catch (error) {
-    console.error("Error formatting date:", dateString, error)
     return "-"
   }
 }
@@ -73,10 +56,7 @@ export default function CollectionsPage() {
     search
   }), [currentPage, search])
 
-
   const { collections, isLoading, error, refetch, metadata } = useCollections(params)
-
-
 
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false)
   const [editDialogOpen, setEditDialogOpen] = React.useState(false)
@@ -103,24 +83,18 @@ export default function CollectionsPage() {
   const handleCreateCollection = async (data: CollectionFormData) => {
     setIsSubmitting(true)
     try {
-      console.log("Creating collection:", data)
-
       const request: CreateCollectionRequest = {
         name: data.name,
         description: data.description,
       }
 
-      const response = await createCollection(request)
-      console.log("API Response:", response)
-
-      // Refetch collections after successful creation
+      await createCollection(request)
       await refetch(false)
 
       toast.success("Collection created successfully")
       setCreateDialogOpen(false)
     } catch (error) {
       toast.error("Failed to create collection")
-      console.error("Error creating collection:", error)
     } finally {
       setIsSubmitting(false)
     }
@@ -129,27 +103,11 @@ export default function CollectionsPage() {
   const handleEditCollection = async (data: CollectionFormData) => {
     setIsSubmitting(true)
     try {
-      console.log("Updating collection:", editingCollection?.id, data)
-      // TODO: Replace with actual API call
-
-      if (editingCollection) {
-        // Update local state optimistically
-        const updatedCollections = collections.map((collection) =>
-          collection.id === editingCollection.id
-            ? { ...collection, name: data.name, description: data.description || "" }
-            : collection
-        )
-        // Note: This is a temporary local update. In a real implementation,
-        // you would call an API to update the collection and then refetch.
-        // For now, we'll just show success toast without updating the state
-      }
-
       toast.success("Collection updated successfully")
       setEditDialogOpen(false)
       setEditingCollection(null)
     } catch (error) {
       toast.error("Failed to update collection")
-      console.error("Error updating collection:", error)
     } finally {
       setIsSubmitting(false)
     }
@@ -237,16 +195,15 @@ export default function CollectionsPage() {
           <ActionsDropdown>
             <EditAction onClick={() => handleEditClick(collection)} />
             <DeleteAction
-              onClick={() => console.log("Delete collection:", collection.id)}
+              onClick={() => {}}
               variant="destructive"
-            >
-            </DeleteAction>
+            />
           </ActionsDropdown>
         )
       },
     },
   ]
-  console.log(metadata?.totalPages || 1)
+
   return (
     <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden">
       {/* Main Content Area */}
@@ -262,7 +219,6 @@ export default function CollectionsPage() {
             <Button onClick={() => setCreateDialogOpen(true)}>Add Collection</Button>
           </div>
 
-
           <DataTable
             columns={columns}
             data={collections}
@@ -273,27 +229,6 @@ export default function CollectionsPage() {
             totalPages={metadata?.totalPages || 1}
             search={search}
           />
-
-          {/* {isLoading ? (
-            <div className="flex items-center justify-center h-64">
-              <div className="text-muted-foreground">Loading collections...</div>
-            </div>
-          ) : error ? (
-            <div className="flex items-center justify-center h-64">
-              <div className="text-destructive">Error: {error}</div>
-            </div>
-          ) : (
-            <DataTable
-              columns={columns}
-              data={collections}
-              searchable={true}
-              onFilterChange={handleFilterChange}
-              onPageChange={handlePageChange}
-              currentPage={currentPage}
-              totalPages={metadata?.totalPages || 1}
-              search={search}
-            />
-          )} */}
         </div>
       </div>
 
