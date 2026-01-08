@@ -4,11 +4,13 @@ from src.shared.infrastructure.database.asyncpg_connection import AsyncPGConnect
 from src.contexts.rag.domain.entities.document import Document
 from src.contexts.rag.domain.repositories.document_repository import DocumentRepository
 from src.contexts.rag.domain.value_objects.document_id import DocumentID
+from src.contexts.rag.domain.value_objects.document_name import DocumentName
 from src.contexts.rag.domain.value_objects.collection_id import CollectionID
 from src.contexts.rag.domain.value_objects.collection_file_id import CollectionFileID
 from src.shared.domain.value_objects.asset_id import AssetID
 from src.contexts.rag.infrastructure.sql.save_document import SAVE_DOCUMENT
 from src.contexts.rag.infrastructure.sql.get_document_by_id import GET_DOCUMENT_BY_ID
+from src.contexts.rag.infrastructure.sql.get_documents_by_collection_id import GET_DOCUMENTS_BY_COLLECTION_ID
 from src.shared.infrastructure.errors import (
     DuplicateRecordError,
     QueryFailed,
@@ -25,6 +27,7 @@ class PostgresDocumentRepository(DocumentRepository):
             await self._db.execute(
                 SAVE_DOCUMENT,
                 data.id.value,
+                data.name.value,
                 data.collection_id.value,
                 data.collection_file_id.value,
                 data.content,
@@ -45,18 +48,46 @@ class PostgresDocumentRepository(DocumentRepository):
                 document_id.value,
                 conn=conn,
             )
-            
+
             if row is None:
                 return None
-                
+
             return Document.create(
                 id=DocumentID.from_value(row['id']),
+                name=DocumentName.from_value(row['name']),
                 collection_id=CollectionID.from_value(row['collection_id']),
-                collection_file_id=CollectionFileID.from_value(row['collection_file_id']),
+                collection_file_id=CollectionFileID.from_value(
+                    row['collection_file_id']),
                 content=row['content'],
                 asset_id=AssetID.from_value(row['asset_id'])
             )
-            
+
         except DatabaseError as e:
             print(e)
             raise QueryFailed("GET_DOCUMENT_BY_ID", e) from e
+
+    async def get_many_by_collection_id(self, collection_id: CollectionID, conn: Any = None) -> list[Document]:
+        try:
+            rows = await self._db.fetch(
+                GET_DOCUMENTS_BY_COLLECTION_ID,
+                collection_id.value,
+                conn=conn,
+            )
+
+            return [
+                Document.create(
+                    id=DocumentID.from_value(row['id']),
+                    name=DocumentName.from_value(row['name']),
+                    collection_id=CollectionID.from_value(
+                        row['collection_id']),
+                    collection_file_id=CollectionFileID.from_value(
+                        row['collection_file_id']),
+                    content=row['content'],
+                    asset_id=AssetID.from_value(row['asset_id'])
+                )
+                for row in rows
+            ]
+
+        except DatabaseError as e:
+            print(e)
+            raise QueryFailed("GET_DOCUMENTS_BY_COLLECTION_ID", e) from e

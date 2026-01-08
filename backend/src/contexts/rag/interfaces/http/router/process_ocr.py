@@ -13,7 +13,7 @@ from . import router
 
 
 @router.post(
-    "/ocr",
+    "/{collection_id}/ocr",
     response_model=ProcessOCRResponse,
     status_code=status.HTTP_200_OK,
     summary="Get a list of collections",
@@ -21,12 +21,13 @@ from . import router
 )
 @inject
 async def process_ocr(
+    collection_id: str,
     request: ProcessOCRRequest,
     process_document_handler: ProcessDocumentHandler = Depends(
         Provide[ApplicationContainer.rag_package.process_document_handler]),
 ) -> ProcessOCRResponse:
     input = ProcessDocumentInput(
-        collection_id=request.collection_id,
+        collection_id=collection_id,
         collection_file_ids=request.collection_file_ids
     )
     result = await process_document_handler.execute(input)

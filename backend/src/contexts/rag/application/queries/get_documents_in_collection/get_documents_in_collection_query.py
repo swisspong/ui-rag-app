@@ -11,7 +11,17 @@ class GetDocumentsInCollectionQuery:
         self._document_read_repo = document_read_repository
 
     async def execute(self, input: GetDocumentsInCollectionInput) -> GetDocumentsInCollectionOutput:
-        documents = await self._document_read_repo.get_by_collection_id(input.collection_id)
+        documents = await self._document_read_repo.get_by_collection_id(
+            input.collection_id,
+            search=input.search,
+            limit=input.limit,
+            offset=input.offset
+        )
+        total = await self._document_read_repo.count_by_collection_id(
+            input.collection_id,
+            search=input.search
+        )
         return GetDocumentsInCollectionOutput(
-            documents=documents
+            documents=documents,
+            total=total
         )

@@ -36,10 +36,12 @@ TABLES = {
     "DOCUMENTS": {
         "ddl": """CREATE TABLE DOCUMENTS (
                     id VARCHAR(255),
+                    name VARCHAR(255),
                     collection_id VARCHAR(255),
                     collection_file_id VARCHAR(255),
                     content TEXT,
                     asset_id VARCHAR(255),
+                    status VARCHAR(50) DEFAULT 'PENDING',
                     created_at TIMESTAMP(0) DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP(0) DEFAULT CURRENT_TIMESTAMP,
                  CONSTRAINT DOCUMENTS_PK PRIMARY KEY (id)

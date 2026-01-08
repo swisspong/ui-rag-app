@@ -3,7 +3,6 @@ from dependency_injector.wiring import inject, Provide
 
 from src.contexts.rag.interfaces.http.schema.get_documents_in_collection import (
     GetDocumentsInCollectionResponse,
-    DocumentsInCollectionData,
     DocumentsInCollectionMeta
 )
 from src.contexts.rag.application.queries.get_documents_in_collection.get_documents_in_collection_query import GetDocumentsInCollectionQuery
@@ -23,25 +22,44 @@ from . import router
 @inject
 async def get_documents_in_collection(
     collection_id: str,
+    page: int = 1,
+    limit: int = 10,
+    search: str = None,
     get_documents_in_collection_query: GetDocumentsInCollectionQuery = Depends(
         Provide[ApplicationContainer.rag_package.get_documents_in_collection_query]),
 ) -> GetDocumentsInCollectionResponse:
+    offset = (page - 1) * limit
     input = GetDocumentsInCollectionInput(
-        collection_id=CollectionID.from_value(collection_id)
+        collection_id=CollectionID.from_value(collection_id),
+        search=search,
+        limit=limit,
+        offset=offset
     )
     result = await get_documents_in_collection_query.execute(input)
 
+    import math
+    total_pages = math.ceil(result.total / limit)
+    has_next_page = page < total_pages
+    has_previous_page = page > 1
+
     return GetDocumentsInCollectionResponse(
-        data=DocumentsInCollectionData(
-            documents=[
-                {
-                    "id": doc.id,
-                    "filename": doc.filename,
-                    "content": doc.content,
-                    "created_at": doc.created_at
-                }
-                for doc in result.documents
-            ]
-        ),
-        meta=DocumentsInCollectionMeta()
+        data=[
+            {
+                "id": doc.id,
+                "name": doc.name,
+                "filename": doc.filename,
+                "status": doc.status,
+                "content": doc.content,
+                "created_at": doc.created_at
+            }
+            for doc in result.documents
+        ],
+        meta=DocumentsInCollectionMeta(
+            page=page,
+            limit=limit,
+            total=result.total,
+            totalPages=total_pages,
+            hasNextPage=has_next_page,
+            hasPreviousPage=has_previous_page
+        )
     )

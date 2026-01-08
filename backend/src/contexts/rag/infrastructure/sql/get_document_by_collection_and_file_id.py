@@ -3,7 +3,9 @@ SELECT
     d.id,
     d.collection_id,
     d.collection_file_id,
+    d.name,
     a.filename,
+    d.status,
     d.content,
     d.created_at
 FROM DOCUMENTS d

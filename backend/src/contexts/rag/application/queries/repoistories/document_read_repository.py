@@ -7,9 +7,22 @@ from src.contexts.rag.domain.value_objects.collection_file_id import CollectionF
 
 class DocumentReadRepository(ABC):
     @abstractmethod
-    async def get_by_collection_id(self, collection_id: CollectionID, conn: Any = None) -> List[DocumentReadModel]:
+    @abstractmethod
+    async def get_by_collection_id(
+        self,
+        collection_id: CollectionID,
+        search: Optional[str] = None,
+        limit: int = 10,
+        offset: int = 0,
+        conn: Any = None
+    ) -> List[DocumentReadModel]:
         pass
 
     @abstractmethod
-    async def get_by_collection_and_file_id(self, collection_id: CollectionID, collection_file_id: CollectionFileID, conn: Any = None) -> Optional[DocumentReadModel]:
+    async def count_by_collection_id(
+        self,
+        collection_id: CollectionID,
+        search: Optional[str] = None,
+        conn: Any = None
+    ) -> int:
         pass

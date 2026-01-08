@@ -3,7 +3,6 @@ from pydantic import BaseModel
 
 
 class ProcessOCRRequest(BaseModel):
-    collection_id: str
     collection_file_ids: List[str]
 
 

@@ -62,6 +62,6 @@ class WorkerContainer(containers.DeclarativeContainer):
         ocr=ocr,
         document_repository=document_repository,
         id_generator=id_generator,
-        rag_process_repository=rag_process_repository,
+        # rag_process_repository=rag_process_repository,
         get_collection_file_in_collection_query=get_collection_file_in_collection_query
     )

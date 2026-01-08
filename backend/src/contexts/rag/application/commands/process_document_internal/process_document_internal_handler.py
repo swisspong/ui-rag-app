@@ -11,8 +11,6 @@ from src.contexts.rag.domain.value_objects.collection_id import CollectionID
 from src.contexts.rag.domain.value_objects.collection_file_id import CollectionFileID
 from src.contexts.rag.domain.value_objects.document_id import DocumentID
 from src.shared.domain.services.id_generator import IDGenerator
-from src.contexts.rag.domain.entities.rag_process import RAGProcess
-from src.contexts.rag.domain.repositories.rag_process_repository import RAGProcessRepository
 from src.contexts.rag.application.commands.process_document_internal.process_document_internal_input import ProcessDocumentInternalInput
 from src.contexts.rag.application.queries.get_collection_file_in_collection.get_collection_file_in_collection_input import GetCollectionFileInCollectionInput
 from src.contexts.rag.application.queries.get_collection_file_in_collection.get_collection_file_in_collection_query import GetCollectionFileInCollectionQuery
@@ -26,7 +24,6 @@ class ProcessDocumentInternalHandler:
         ocr: OCR,
         document_repository: DocumentRepository,
         id_generator: IDGenerator,
-        rag_process_repository: RAGProcessRepository,
         get_collection_file_in_collection_query: GetCollectionFileInCollectionQuery
     ):
         self._asset_storage = asset_storage
@@ -34,56 +31,28 @@ class ProcessDocumentInternalHandler:
         self._ocr = ocr
         self._document_repo = document_repository
         self._id_generator = id_generator
-        self._rag_process_repository = rag_process_repository
         self._get_collection_file_in_collection_query = get_collection_file_in_collection_query
 
     async def execute(self, input: ProcessDocumentInternalInput):
-        await asyncio.sleep(4)
-        print(input.collection_file_id)
-        collection_file = await self._get_collection_file_in_collection_query.execute(
-            GetCollectionFileInCollectionInput(
-                collection_file_id=input.collection_file_id,
-                collection_id=input.collection_id
-            )
-        )
-        if not collection_file:
-            raise NotFound("Collection file not found")
 
-        # Load existing RAGProcess from repository
-        collection_id = CollectionID.from_value(input.collection_id)
-        collection_file_id = CollectionFileID.from_value(
-            input.collection_file_id)
-        rag_process = await self._rag_process_repository.get_by_collection_id_and_collection_file_id(
-            collection_id,
-            collection_file_id
-        )
+        document_id = DocumentID.from_value(input.document_id)
 
-        if not rag_process:
-            raise NotFound("RAG process not found")
+        document = await self._document_repo.get_by_id(document_id)
+        if not document:
+            raise NotFound("Document not found")
 
-        asset_id = AssetID.from_value(collection_file.asset_id)
+        document.mark_as_running()
+        await self._document_repo.save(document)
 
-        asset = await self._asset_repository.get_by_id(asset_id)
+        asset = await self._asset_repository.get_by_id(document.asset_id)
 
         if not asset:
             raise NotFound("Asset not found")
 
-        a = await self._asset_storage.open(asset_id)
-
-        rag_process.start_ocr()
-        await self._rag_process_repository.save(rag_process)
+        a = await self._asset_storage.open(document.asset_id)
 
         result = await self._ocr.extract_text(asset, a)
 
-        document = Document.create(
-            id=DocumentID.from_value(self._id_generator.new_id()),
-            collection_file_id=collection_file_id,
-            collection_id=collection_id,
-            content=result,
-            asset_id=asset_id
-        )
+        document.mark_as_completed(result)
 
         await self._document_repo.save(document)
-
-        rag_process.finish_ocr(document.id)
-        await self._rag_process_repository.save(rag_process)

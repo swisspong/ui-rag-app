@@ -25,6 +25,7 @@ All parameters are optional query parameters.
 | `search` | string | - | Search query to filter files by name |
 | `sortBy` | string | - | Field to sort by. Options: `name`, `size`, `uploadedAt` |
 | `sortOrder` | `'asc'` \| `'desc'` | - | Sort order (ascending or descending) |
+| `select` | boolean | `false` | When `true`, returns only `id` and `name` fields in the data array |
 
 ## Request Schema
 
@@ -33,6 +34,8 @@ No request body is required for this endpoint. All parameters are passed as quer
 ## Response Schema
 
 The response follows a standardized format with `data`, `metadata`, and `message` keys.
+
+### Default Response (when `select=false` or not provided)
 
 ```typescript
 {
@@ -51,6 +54,18 @@ The response follows a standardized format with `data`, `metadata`, and `message
     hasNextPage: boolean
     hasPreviousPage: boolean
   }
+  message: string
+}
+```
+
+### Simplified Response (when `select=true`)
+
+```typescript
+{
+  data: Array<{
+    id: string
+    name: string
+  }>
   message: string
 }
 ```
@@ -80,6 +95,9 @@ The response follows a standardized format with `data`, `metadata`, and `message
 
 ```bash
 curl -X GET "http://localhost:3000/api/collections/1/files?page=1&limit=10&search=document&sortBy=name&sortOrder=asc"
+
+# Request with simplified output (only id and name)
+curl -X GET "http://localhost:3000/api/collections/1/files?select=true"
 ```
 
 ## Example Success Response
@@ -110,6 +128,24 @@ curl -X GET "http://localhost:3000/api/collections/1/files?page=1&limit=10&searc
     "hasNextPage": true,
     "hasPreviousPage": false
   },
+  "message": "Files retrieved successfully"
+}
+```
+
+### Example Success Response with `select=true`
+
+```json
+{
+  "data": [
+    {
+      "id": "file_001",
+      "name": "document1.pdf"
+    },
+    {
+      "id": "file_002",
+      "name": "document2.docx"
+    }
+  ],
   "message": "Files retrieved successfully"
 }
 ```

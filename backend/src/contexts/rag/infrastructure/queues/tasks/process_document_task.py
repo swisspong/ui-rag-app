@@ -12,9 +12,7 @@ from src.contexts.rag.application.commands.process_document_internal.process_doc
 @inject
 def process_document_task(
     self,
-    collection_id,
-    collection_file_id,
-    rag_process_id,
+    document_id: str,
     process_document_internal_command: ProcessDocumentInternalHandler = Provide[
         WorkerContainer.process_document_internal_command]
 ):
@@ -29,9 +27,7 @@ def process_document_task(
         loop.run_until_complete(
             process_document_internal_command.execute(
                 ProcessDocumentInternalInput(
-                    collection_id=collection_id,
-                    collection_file_id=collection_file_id,
-                    rag_process_id=rag_process_id
+                    document_id=document_id,
                 )
             )
         )

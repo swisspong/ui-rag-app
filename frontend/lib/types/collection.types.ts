@@ -146,3 +146,40 @@ export interface GetFilesInCollectionParams {
   sortBy?: 'name' | 'size' | 'createdAt'
   sortOrder?: 'asc' | 'desc'
 }
+
+/**
+ * Request parameters for fetching files in a collection with select=true
+ */
+export interface GetFilesSelectRequest {
+  collectionId: string
+}
+
+/**
+ * Simplified file entity type for select=true response
+ */
+export interface FileSelect {
+  id: string
+  name: string
+}
+
+/**
+ * API response for files list with select=true
+ */
+export interface GetFilesSelectResponse {
+  data: FileSelect[]
+  message: string
+}
+
+/**
+ * Request body for processing OCR
+ */
+export interface ProcessOCRRequest {
+  collection_file_ids: string[]
+}
+
+/**
+ * Response body for processing OCR
+ */
+export interface ProcessOCRResponse {
+  success: boolean
+}

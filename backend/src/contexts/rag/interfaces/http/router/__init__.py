@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-router = APIRouter(prefix="/rag", tags=["RAG"])
+router = APIRouter(prefix="/collections", tags=["RAG"])
 
 from . import (
    process_ocr,

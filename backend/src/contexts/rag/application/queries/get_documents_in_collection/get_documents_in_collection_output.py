@@ -6,3 +6,4 @@ from src.contexts.rag.application.queries.models.document_read_model import Docu
 @dataclass
 class GetDocumentsInCollectionOutput:
     documents: List[DocumentReadModel]
+    total: int

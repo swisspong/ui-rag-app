@@ -14,6 +14,7 @@ import { DocumentFormDialog } from "@/components/documents"
 import { DocumentEditDialog, type DocumentEditFormData } from "@/components/document-edit"
 import { type DocumentFormData, type FileOption } from "@/components/documents"
 import { useCollection } from "@/lib/hooks/useCollection"
+import { useGetFilesSelect, useProcessOCR } from "@/lib/hooks/api"
 
 export default function DocumentsPage({
   params,
@@ -22,45 +23,28 @@ export default function DocumentsPage({
 }) {
   const { id } = React.use(params)
   const { collection, isLoading, error } = useCollection(id)
-  
+  const { data: files, isLoading: filesLoading, error: filesError } = useGetFilesSelect({ collectionId: id })
+  const { processOCR, isLoading: isOcrLoading } = useProcessOCR()
+
   // Dialog state
   const [isDialogOpen, setIsDialogOpen] = React.useState(false)
-  const [isSubmitting, setIsSubmitting] = React.useState(false)
-  
+
   // Edit state
   const [editingDocument, setEditingDocument] = React.useState<{ id: string; name: string } | null>(null)
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false)
   const [isEditSubmitting, setIsEditSubmitting] = React.useState(false)
 
-  // Mock files data
-  const mockFiles: FileOption[] = [
-    { id: "file-1", name: "document.pdf" },
-    { id: "file-2", name: "scan.jpg" },
-    { id: "file-3", name: "report.pdf" },
-    { id: "file-4", name: "invoice.png" },
-    { id: "file-5", name: "manual.pdf" },
-  ]
-
   // Handle form submission for create
   const handleSubmit = async (data: DocumentFormData) => {
-    setIsSubmitting(true)
     try {
-      console.log("Creating document:", data)
-      // TODO: Replace with actual API call
-      
-      // Simulate async operation
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      
-      toast.success("Document created successfully")
+      console.log("Creating document (OCR):", data)
+      await processOCR(id, { collection_file_ids: [data.fileId] })
       setIsDialogOpen(false)
     } catch (error) {
-      toast.error("Failed to create document")
       console.error("Error creating document:", error)
-    } finally {
-      setIsSubmitting(false)
     }
   }
-  
+
   // Handle form submission for edit
   const handleEditSubmit = async (data: DocumentEditFormData) => {
     setIsEditSubmitting(true)
@@ -68,10 +52,10 @@ export default function DocumentsPage({
       if (editingDocument) {
         console.log("Updating document:", editingDocument.id, data)
         // TODO: Replace with actual API call
-        
+
         // Simulate async operation
         await new Promise(resolve => setTimeout(resolve, 1500))
-        
+
         toast.success("Document updated successfully")
         setIsEditDialogOpen(false)
         setEditingDocument(null)
@@ -83,7 +67,7 @@ export default function DocumentsPage({
       setIsEditSubmitting(false)
     }
   }
-  
+
   // Handle edit button click
   const handleEdit = (document: Document) => {
     setEditingDocument({ id: document.id, name: document.documentName })
@@ -166,11 +150,11 @@ export default function DocumentsPage({
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
         mode="create"
-        files={mockFiles}
+        files={files || []}
         onSubmit={handleSubmit}
-        isSubmitting={isSubmitting}
+        isSubmitting={isOcrLoading}
       />
-      
+
       {/* Document Edit Dialog */}
       {editingDocument && (
         <DocumentEditDialog

@@ -9,6 +9,10 @@ import type {
   GetCollectionsParams,
   GetFilesInCollectionParams,
   GetFilesInCollectionResponse,
+  GetFilesSelectRequest,
+  GetFilesSelectResponse,
+  ProcessOCRRequest,
+  ProcessOCRResponse,
   UploadFilesResponse,
 } from '@/lib/types/collection.types'
 
@@ -213,7 +217,7 @@ export async function uploadFiles(
 
   try {
     const formData = new FormData()
-    
+
     // Append each file to FormData with field name "files"
     files.forEach((file) => {
       formData.append('files', file)
@@ -326,6 +330,101 @@ export async function getFilesInCollection(
 }
 
 /**
+ * Get files in a collection with select=true (simplified response)
+ *
+ * @param params - Parameters including collectionId
+ * @returns Promise resolving to GetFilesSelectResponse with only id and name fields
+ * @throws ApiError if the request fails
+ */
+export async function getFilesSelect(
+  params: GetFilesSelectRequest
+): Promise<GetFilesSelectResponse> {
+  const { collectionId } = params
+  const url = `${API_BASE_URL}/collections/${collectionId}/files?select=true`
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store', // Disable caching for fresh data
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new ApiError(
+        data.message || 'Failed to fetch files in collection',
+        response.status,
+        data
+      )
+    }
+
+    return data as GetFilesSelectResponse
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error
+    }
+
+    // Handle network errors or other unexpected errors
+    throw new ApiError(
+      error instanceof Error ? error.message : 'An unexpected error occurred',
+      undefined,
+      undefined
+    )
+  }
+}
+
+/**
+ * Process OCR for specific files in a collection
+ *
+ * @param collectionId - The unique identifier of the collection
+ * @param request - The OCR processing request
+ * @returns Promise resolving to ProcessOCRResponse
+ * @throws ApiError if the request fails
+ */
+export async function processOCR(
+  collectionId: string,
+  request: ProcessOCRRequest
+): Promise<ProcessOCRResponse> {
+  const url = `${API_BASE_URL}/collections/${collectionId}/ocr`
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new ApiError(
+        data.message || 'Failed to process OCR',
+        response.status,
+        data
+      )
+    }
+
+    return data as ProcessOCRResponse
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error
+    }
+
+    // Handle network errors or other unexpected errors
+    throw new ApiError(
+      error instanceof Error ? error.message : 'An unexpected error occurred',
+      undefined,
+      undefined
+    )
+  }
+}
+
+/**
  * Collection service object with all collection-related API methods
  */
 export const collectionService = {
@@ -334,4 +433,6 @@ export const collectionService = {
   getCollection,
   uploadFiles,
   getFilesInCollection,
+  getFilesSelect,
+  processOCR,
 }

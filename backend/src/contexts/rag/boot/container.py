@@ -24,6 +24,11 @@ from src.contexts.rag.application.queries.get_chunks_by_collection_id.get_chunks
 from src.contexts.rag.application.commands.update_chunk.update_chunk_handler import UpdateChunkHandler
 from src.contexts.rag.application.commands.delete_multiple_chunks.delete_multiple_chunks_handler import DeleteMultipleChunksHandler
 from src.contexts.rag.application.commands.ingest_multiple_chunks_by_collection.ingest_multiple_chunks_by_collection_handler import IngestMultipleChunksByCollectionHandler
+from src.contexts.rag.application.policies.document_name_policy import DocumentNamePolicy
+from src.shared.infrastructure.repositories.postgres_asset_repository import PostgresAssetRepository
+from src.contexts.rag.infrastructure.repositories.postgres_collection_file_read_repository import PostgresCollectionFileReadRepository
+from src.contexts.rag.application.queries.get_collection_file_in_collection.get_collection_file_in_collection_query import GetCollectionFileInCollectionQuery
+
 
 class RAGContainer(containers.DeclarativeContainer):
     database = providers.Dependency()
@@ -60,6 +65,15 @@ class RAGContainer(containers.DeclarativeContainer):
         db=database
     )
 
+    asset_repository = providers.Singleton(
+        PostgresAssetRepository,
+        db=database
+    )
+    collection_file_read_repository = providers.Singleton(
+        PostgresCollectionFileReadRepository,
+        db=database
+    )
+
     milvus_connection = providers.Singleton(
         MilvusConnection,
         host="localhost",
@@ -85,13 +99,26 @@ class RAGContainer(containers.DeclarativeContainer):
         model=None
     )
 
+    get_collection_file_in_collection_query = providers.Factory(
+        GetCollectionFileInCollectionQuery,
+        collection_file_read_repository=collection_file_read_repository
+    )
+
+    document_name_policy = providers.Factory(
+        DocumentNamePolicy,
+        document_repository=document_repository
+    )
+
     process_document_handler = providers.Factory(
         ProcessDocumentHandler,
         job_dispatcher=async_dispatcher,
         id_generator=id_generator,
-        rag_process_repository=rag_process_repository
+        get_collection_file_in_collection_query=get_collection_file_in_collection_query,
+        asset_repository=asset_repository,
+        document_repository=document_repository,
+        document_name_policy=document_name_policy
     )
-    
+
     chunking_handler = providers.Factory(
         ChunkingHandler,
         tokenizer=tokenizer,
@@ -100,7 +127,7 @@ class RAGContainer(containers.DeclarativeContainer):
         id_generator=id_generator,
         rag_process_repository=rag_process_repository
     )
-    
+
     get_collection_query = providers.Factory(
         GetCollectionQuery,
         collection_read_repository=collection_read_repository
