@@ -16,3 +16,13 @@ ORDER BY CASE
 END DESC
 LIMIT $4 OFFSET $5
 """
+
+GET_FILES_IN_COLLECTION_SIMPLE = """
+SELECT
+    cf.id,
+    a.filename
+FROM collection_files cf
+INNER JOIN assets a ON cf.asset_id = a.id
+WHERE cf.collection_id = $1
+ORDER BY cf.created_at DESC
+"""

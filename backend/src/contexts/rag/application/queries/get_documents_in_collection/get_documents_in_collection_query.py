@@ -15,7 +15,8 @@ class GetDocumentsInCollectionQuery:
             input.collection_id,
             search=input.search,
             limit=input.limit,
-            offset=input.offset
+            offset=input.offset,
+            select=input.select
         )
         total = await self._document_read_repo.count_by_collection_id(
             input.collection_id,

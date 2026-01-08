@@ -6,6 +6,6 @@ import datetime
 class CollectionFileReadModel:
     id: str
     filename: str
-    size: int
-    type: str
-    created_at: datetime.datetime
+    size: int | None = None
+    type: str | None = None
+    created_at: datetime.datetime | None = None

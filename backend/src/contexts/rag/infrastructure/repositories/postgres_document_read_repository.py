@@ -8,6 +8,7 @@ from src.contexts.rag.domain.value_objects.collection_file_id import CollectionF
 from src.contexts.rag.infrastructure.sql.get_documents_in_collection import GET_DOCUMENTS_IN_COLLECTION
 from src.contexts.rag.infrastructure.sql.count_documents_in_collection import COUNT_DOCUMENTS_IN_COLLECTION
 from src.contexts.rag.infrastructure.sql.get_document_by_collection_and_file_id import GET_DOCUMENT_BY_COLLECTION_AND_FILE_ID
+from src.contexts.rag.infrastructure.sql.select_documents_in_collection import SELECT_DOCUMENTS_IN_COLLECTION
 from src.shared.infrastructure.errors import (
     QueryFailed,
     DatabaseError
@@ -24,9 +25,25 @@ class PostgresDocumentReadRepository(DocumentReadRepository):
         search: Optional[str] = None,
         limit: int = 10,
         offset: int = 0,
+        select: bool = False,
         conn: Any = None
     ) -> List[DocumentReadModel]:
         try:
+            if select:
+                rows = await self._db.fetch(
+                    SELECT_DOCUMENTS_IN_COLLECTION,
+                    collection_id.value,
+                    conn=conn,
+                )
+
+                return [
+                    DocumentReadModel(
+                        id=row['id'],
+                        name=row['name']
+                    )
+                    for row in rows
+                ]
+
             rows = await self._db.fetch(
                 GET_DOCUMENTS_IN_COLLECTION,
                 collection_id.value,

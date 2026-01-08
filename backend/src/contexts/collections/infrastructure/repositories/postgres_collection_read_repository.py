@@ -17,7 +17,7 @@ from src.contexts.collections.application.queries.get_collection_list.get_collec
 from src.contexts.collections.infrastructure.sql.exists_by_name_collection import EXISTS_BY_NAME_COLLECTION
 from src.contexts.collections.infrastructure.sql.get_collection_list import GET_COLLECTION_LIST
 from src.contexts.collections.infrastructure.sql.count_collections import COUNT_COLLECTIONS
-from src.contexts.collections.infrastructure.sql.get_files_in_collection import GET_FILES_IN_COLLECTION
+from src.contexts.collections.infrastructure.sql.get_files_in_collection import GET_FILES_IN_COLLECTION, GET_FILES_IN_COLLECTION_SIMPLE
 from src.contexts.collections.infrastructure.sql.count_files_in_collection import COUNT_FILES_IN_COLLECTION
 from src.contexts.collections.infrastructure.sql.get_collection import GET_COLLECTION
 from src.contexts.collections.application.queries.get_files_in_collection.get_files_in_collection_input import GetFilesInCollectionInput
@@ -90,25 +90,41 @@ class PostgresCollectionReadRepository(CollectionReadRepository):
     async def get_files_in_collection(self, input_data: GetFilesInCollectionInput, conn: Any = None) -> Tuple[List[CollectionFileReadModel], int]:
         try:
             # Get the files with pagination
-            rows = await self._db.fetch(
-                GET_FILES_IN_COLLECTION,
-                input_data.collection_id.value,
-                input_data.search,
-                input_data.order_by,
-                input_data.limit,
-                input_data.offset,
-                conn=conn,
-            )
+            if input_data.select:
+                rows = await self._db.fetch(
+                    GET_FILES_IN_COLLECTION_SIMPLE,
+                    input_data.collection_id.value,
+                    conn=conn,
+                )
+            else:
+                rows = await self._db.fetch(
+                    GET_FILES_IN_COLLECTION,
+                    input_data.collection_id.value,
+                    input_data.search,
+                    input_data.order_by,
+                    input_data.limit,
+                    input_data.offset,
+                    conn=conn,
+                )
 
             files = []
             for row in rows:
-                file = CollectionFileReadModel(
-                    id=row['id'],
-                    filename=row['filename'],
-                    size=row['size'],
-                    type=row['content_type'],
-                    created_at=row['created_at']
-                )
+                if input_data.select:
+                    file = CollectionFileReadModel(
+                        id=row['id'],
+                        filename=row['filename'],
+                        size=None,
+                        type=None,
+                        created_at=None
+                    )
+                else:
+                    file = CollectionFileReadModel(
+                        id=row['id'],
+                        filename=row['filename'],
+                        size=row['size'],
+                        type=row['content_type'],
+                        created_at=row['created_at']
+                    )
                 files.append(file)
 
             # Get the total count

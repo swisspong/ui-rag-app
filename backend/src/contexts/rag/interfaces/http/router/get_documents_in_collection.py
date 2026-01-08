@@ -13,7 +13,7 @@ from . import router
 
 
 @router.get(
-    "/collection/{collection_id}/documents",
+    "/{collection_id}/documents",
     response_model=GetDocumentsInCollectionResponse,
     status_code=status.HTTP_200_OK,
     summary="Get documents in collection",
@@ -25,6 +25,7 @@ async def get_documents_in_collection(
     page: int = 1,
     limit: int = 10,
     search: str = None,
+    select: bool = False,
     get_documents_in_collection_query: GetDocumentsInCollectionQuery = Depends(
         Provide[ApplicationContainer.rag_package.get_documents_in_collection_query]),
 ) -> GetDocumentsInCollectionResponse:
@@ -33,9 +34,22 @@ async def get_documents_in_collection(
         collection_id=CollectionID.from_value(collection_id),
         search=search,
         limit=limit,
-        offset=offset
+        offset=offset,
+        select=select
     )
     result = await get_documents_in_collection_query.execute(input)
+
+    if select:
+        return GetDocumentsInCollectionResponse(
+            data=[
+                {
+                    "id": doc.id,
+                    "name": doc.name,
+                }
+                for doc in result.documents
+            ],
+            meta=None
+        )
 
     import math
     total_pages = math.ceil(result.total / limit)

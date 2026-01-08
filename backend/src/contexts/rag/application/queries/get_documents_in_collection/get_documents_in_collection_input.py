@@ -11,3 +11,4 @@ class GetDocumentsInCollectionInput:
     order_by: str = "created_at"
     limit: int = 10
     offset: int = 0
+    select: bool = False

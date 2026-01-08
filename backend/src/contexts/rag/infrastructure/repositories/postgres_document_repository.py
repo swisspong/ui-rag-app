@@ -6,6 +6,7 @@ from src.contexts.rag.domain.repositories.document_repository import DocumentRep
 from src.contexts.rag.domain.value_objects.document_id import DocumentID
 from src.contexts.rag.domain.value_objects.document_name import DocumentName
 from src.contexts.rag.domain.value_objects.collection_id import CollectionID
+from src.contexts.rag.domain.value_objects.stage_execution import ProcessStatus
 from src.contexts.rag.domain.value_objects.collection_file_id import CollectionFileID
 from src.shared.domain.value_objects.asset_id import AssetID
 from src.contexts.rag.infrastructure.sql.save_document import SAVE_DOCUMENT
@@ -32,6 +33,7 @@ class PostgresDocumentRepository(DocumentRepository):
                 data.collection_file_id.value,
                 data.content,
                 data.asset_id.value,
+                data.status.value,
                 conn=conn,
             )
             return data
@@ -59,7 +61,8 @@ class PostgresDocumentRepository(DocumentRepository):
                 collection_file_id=CollectionFileID.from_value(
                     row['collection_file_id']),
                 content=row['content'],
-                asset_id=AssetID.from_value(row['asset_id'])
+                asset_id=AssetID.from_value(row['asset_id']),
+                status=ProcessStatus(row['status'])
             )
 
         except DatabaseError as e:
@@ -83,7 +86,8 @@ class PostgresDocumentRepository(DocumentRepository):
                     collection_file_id=CollectionFileID.from_value(
                         row['collection_file_id']),
                     content=row['content'],
-                    asset_id=AssetID.from_value(row['asset_id'])
+                    asset_id=AssetID.from_value(row['asset_id']),
+                    status=ProcessStatus(row['status'])
                 )
                 for row in rows
             ]

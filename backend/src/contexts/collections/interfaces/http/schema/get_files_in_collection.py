@@ -11,9 +11,10 @@ class CollectionFileResponse(BaseModel):
     )
     id: str = Field(..., description="Unique identifier for the collection file")
     name: str = Field(..., description="Name of the file")
-    size: int = Field(..., description="Size of the file in bytes")
-    type: str = Field(..., description="Type of the file")
-    created_at: datetime = Field(..., description="Timestamp when the file was created")
+    size: Optional[int] = Field(None, description="Size of the file in bytes")
+    type: Optional[str] = Field(None, description="Type of the file")
+    created_at: Optional[datetime] = Field(
+        None, description="Timestamp when the file was created")
 
 
 class FilesListMeta(BaseModel):
@@ -37,5 +38,5 @@ class FilesListMeta(BaseModel):
 class GetFilesInCollectionResponse(BaseModel):
     data: List[CollectionFileResponse] = Field(...,
                                                description="Data containing the list of files")
-    metadata: FilesListMeta = Field(...,
-                                description="Metadata about the pagination and search")
+    metadata: Optional[FilesListMeta] = Field(None,
+                                              description="Metadata about the pagination and search")

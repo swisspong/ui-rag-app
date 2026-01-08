@@ -37,10 +37,14 @@ def _map_read_model_to_response(read_model: CollectionFileReadModel) -> Collecti
 @inject
 async def get_files_in_collection(
     collection_id: str,
-    search: Optional[str] = Query(None, description="Search term to filter files by filename"),
-    order_by: str = Query("created_at", description="Field to order by (created_at, filename)"),
-    limit: int = Query(20, ge=1, le=100, description="Number of items per page"),
+    search: Optional[str] = Query(
+        None, description="Search term to filter files by filename"),
+    order_by: str = Query(
+        "created_at", description="Field to order by (created_at, filename)"),
+    limit: int = Query(
+        20, ge=1, le=100, description="Number of items per page"),
     page: int = Query(1, ge=1, description="Page number"),
+    select: bool = Query(False, description="Return only id and name fields"),
     get_files_in_collection_query: GetFilesInCollectionQuery = Depends(
         Provide[ApplicationContainer.collection_package.get_files_in_collection_query]),
 ) -> GetFilesInCollectionResponse:
@@ -53,11 +57,12 @@ async def get_files_in_collection(
         search=search,
         order_by=order_by,
         limit=limit,
-        offset=offset
+        offset=offset,
+        select=select
     )
 
     result = await get_files_in_collection_query.execute(input_data)
-    
+
     # Map the read models to response models
     file_responses = [
         _map_read_model_to_response(file)
@@ -65,14 +70,15 @@ async def get_files_in_collection(
     ]
 
     # Calculate pagination metadata
-    total_pages = math.ceil(result.total_count / limit) if result.total_count > 0 else 0
-    has_next_page = page < total_pages
-    has_previous_page = page > 1
+    if select:
+        metadata = None
+    else:
+        total_pages = math.ceil(result.total_count /
+                                limit) if result.total_count > 0 else 0
+        has_next_page = page < total_pages
+        has_previous_page = page > 1
 
-    # Create the response with data list and metadata
-    return GetFilesInCollectionResponse(
-        data=file_responses,
-        metadata=FilesListMeta(
+        metadata = FilesListMeta(
             total=result.total_count,
             limit=limit,
             page=page,
@@ -81,4 +87,9 @@ async def get_files_in_collection(
             has_next_page=has_next_page,
             has_previous_page=has_previous_page
         )
+
+    # Create the response with data list and metadata
+    return GetFilesInCollectionResponse(
+        data=file_responses,
+        metadata=metadata
     )

@@ -5,18 +5,20 @@ Retrieves a paginated list of documents within a specific collection.
 ## Endpoint
 
 ```
-GET /api/collection/{collectionId}/documents
+GET /collection/{collectionId}/documents
 ```
 
 ## Request Parameters
 
 All parameters are optional query parameters.
 
+
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `page` | number | `1` | Page number for pagination |
 | `limit` | number | `10` | Number of items per page |
 | `search` | string | - | Optional search query to filter documents by content or filename |
+| `select` | boolean | `false` | If `true`, returns all documents (ignoring pagination) with a simplified structure (`id`, `name`, `metadata`: `null`) |
 
 ## Request Schema
 
@@ -73,10 +75,24 @@ The `data` field is an array of document objects.
 | `hasNextPage` | boolean | Whether there is a next page available |
 | `hasPreviousPage` | boolean | Whether there is a previous page available |
 
+### Selection Mode Response (select=true)
+
+When `select=true` is provided, the API returns a list of all documents without pagination. The document objects are simplified to include only `id`, `name`, and `metadata` (which is `null`).
+
+```typescript
+{
+  data: Array<{
+    id: string
+    name: string
+    metadata: null
+  }>
+}
+```
+
 ## Example Request
 
 ```bash
-curl -X GET "http://localhost:8005/api/collection/123/documents?page=1&limit=10"
+curl -X GET "http://localhost:8005/collection/123/documents?page=1&limit=10"
 ```
 
 ## Example Success Response
@@ -111,6 +127,32 @@ curl -X GET "http://localhost:8005/api/collection/123/documents?page=1&limit=10"
   }
 }
 ```
+
+## Example Selection Mode Request
+
+```bash
+curl -X GET "http://localhost:8005/collection/123/documents?select=true"
+```
+
+## Example Selection Mode Response
+
+```json
+{
+  "data": [
+    {
+      "id": "doc_1",
+      "name": "Invoice 123",
+      "metadata": null
+    },
+    {
+      "id": "doc_2",
+      "name": "Meeting Notes",
+      "metadata": null
+    }
+  ]
+}
+```
+
 
 ## Status Codes
 

@@ -7,7 +7,7 @@ from src.contexts.collections.domain.value_objects.collection_id import Collecti
 class GetFilesInCollectionInput:
     """
     Input model for the get_files_in_collection query.
-    
+
     Used to retrieve a paginated list of files in a collection with optional filtering.
     """
     collection_id: CollectionID
@@ -15,3 +15,4 @@ class GetFilesInCollectionInput:
     order_by: str = "created_at"
     limit: int = 20
     offset: int = 0
+    select: bool = False

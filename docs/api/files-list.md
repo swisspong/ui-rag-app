@@ -94,10 +94,10 @@ The response follows a standardized format with `data`, `metadata`, and `message
 ## Example Request
 
 ```bash
-curl -X GET "http://localhost:3000/api/collections/1/files?page=1&limit=10&search=document&sortBy=name&sortOrder=asc"
+curl -X GET "http://localhost:8005/collections/1/files?page=1&limit=10&search=document&sortBy=name&sortOrder=asc"
 
 # Request with simplified output (only id and name)
-curl -X GET "http://localhost:3000/api/collections/1/files?select=true"
+curl -X GET "http://localhost:8005/collections/1/files?select=true"
 ```
 
 ## Example Success Response

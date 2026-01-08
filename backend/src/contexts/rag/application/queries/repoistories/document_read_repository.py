@@ -14,6 +14,7 @@ class DocumentReadRepository(ABC):
         search: Optional[str] = None,
         limit: int = 10,
         offset: int = 0,
+        select: bool = False,
         conn: Any = None
     ) -> List[DocumentReadModel]:
         pass

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel, Field
 from datetime import datetime
 
@@ -6,10 +6,10 @@ from datetime import datetime
 class DocumentItem(BaseModel):
     id: str
     name: str
-    filename: str
-    status: str = "pending"
-    content: str
-    created_at: datetime = Field(..., alias="createdAt")
+    filename: Optional[str] = None
+    status: Optional[str] = None
+    content: Optional[str] = None
+    created_at: Optional[datetime] = Field(None, alias="createdAt")
 
     class Config:
         populate_by_name = True
@@ -37,5 +37,5 @@ class DocumentsInCollectionMeta(BaseModel):
 class GetDocumentsInCollectionResponse(BaseModel):
     data: List[DocumentItem] = Field(
         ..., description="Data containing the list of documents")
-    meta: DocumentsInCollectionMeta = Field(...,
-                                            description="Metadata about the response")
+    meta: Optional[DocumentsInCollectionMeta] = Field(None,
+                                                      description="Metadata about the response")
