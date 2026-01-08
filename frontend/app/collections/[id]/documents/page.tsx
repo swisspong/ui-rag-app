@@ -2,19 +2,19 @@
 
 import * as React from "react"
 import { toast } from "sonner"
+import { useSearchParams, useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { DataTable } from "@/components/ui/data-table"
 import {
   CollectionHeader,
-  mockDocuments,
   documentColumns,
-  type Document
 } from "../collection-data"
 import { DocumentFormDialog } from "@/components/documents"
 import { DocumentEditDialog, type DocumentEditFormData } from "@/components/document-edit"
-import { type DocumentFormData, type FileOption } from "@/components/documents"
+import { type DocumentFormData } from "@/components/documents"
 import { useCollection } from "@/lib/hooks/useCollection"
-import { useGetFilesSelect, useProcessOCR } from "@/lib/hooks/api"
+import { useGetFilesSelect, useProcessOCR, useGetCollectionDocuments } from "@/lib/hooks/api"
+import type { Document as CollectionDocument } from "@/lib/types/document.types"
 
 export default function DocumentsPage({
   params,
@@ -22,8 +22,24 @@ export default function DocumentsPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = React.use(params)
-  const { collection, isLoading, error } = useCollection(id)
-  const { data: files, isLoading: filesLoading, error: filesError } = useGetFilesSelect({ collectionId: id })
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
+
+  // URL Params state
+  const currentPage = Number(searchParams.get("page")) || 1
+  const search = searchParams.get("search") || ""
+
+  const queryParams = React.useMemo(() => ({
+    page: currentPage,
+    limit: 10,
+    search
+  }), [currentPage, search])
+
+  // Data fetching
+  const { collection, isLoading: isCollectionLoading, error: collectionError } = useCollection(id)
+  const { data: documents, isLoading: isDocumentsLoading, metadata } = useGetCollectionDocuments(id, queryParams)
+  const { data: files } = useGetFilesSelect({ collectionId: id })
   const { processOCR, isLoading: isOcrLoading } = useProcessOCR()
 
   // Dialog state
@@ -34,54 +50,69 @@ export default function DocumentsPage({
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false)
   const [isEditSubmitting, setIsEditSubmitting] = React.useState(false)
 
+  // Pagination & Filter Handlers
+  const handlePageChange = (pageIndex: number) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set("page", String(pageIndex))
+    router.push(`${pathname}?${params.toString()}`, { scroll: false })
+  }
+
+  const handleFilterChange = (searchQuery: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (searchQuery) {
+      params.set("search", searchQuery)
+    } else {
+      params.delete("search")
+    }
+    params.set("page", "1")
+    router.push(`${pathname}?${params.toString()}`, { scroll: false })
+  }
+
   // Handle form submission for create
   const handleSubmit = async (data: DocumentFormData) => {
     try {
-      console.log("Creating document (OCR):", data)
       await processOCR(id, { collection_file_ids: [data.fileId] })
       setIsDialogOpen(false)
+      toast.success("Document processing started")
     } catch (error) {
       console.error("Error creating document:", error)
+      toast.error("Failed to start processing")
     }
   }
 
   // Handle form submission for edit
-  const handleEditSubmit = async (data: DocumentEditFormData) => {
+  const handleEditSubmit = async () => {
     setIsEditSubmitting(true)
     try {
       if (editingDocument) {
-        console.log("Updating document:", editingDocument.id, data)
         // TODO: Replace with actual API call
-
-        // Simulate async operation
         await new Promise(resolve => setTimeout(resolve, 1500))
 
         toast.success("Document updated successfully")
         setIsEditDialogOpen(false)
         setEditingDocument(null)
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to update document")
-      console.error("Error updating document:", error)
     } finally {
       setIsEditSubmitting(false)
     }
   }
 
   // Handle edit button click
-  const handleEdit = (document: Document) => {
-    setEditingDocument({ id: document.id, name: document.documentName })
+  const handleEdit = (document: CollectionDocument) => {
+    setEditingDocument({ id: document.id, name: document.name })
     setIsEditDialogOpen(true)
   }
 
   // Show loading state
-  if (isLoading) {
+  if (isCollectionLoading || isDocumentsLoading) {
     return (
       <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden">
         <div className="flex-1 overflow-y-auto">
           <div className="p-4 lg:p-6 space-y-6">
             <div className="flex items-center justify-center h-64">
-              <p className="text-muted-foreground">Loading collection...</p>
+              <p className="text-muted-foreground">Loading...</p>
             </div>
           </div>
         </div>
@@ -90,7 +121,7 @@ export default function DocumentsPage({
   }
 
   // Show error state
-  if (error) {
+  if (collectionError) {
     return (
       <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden">
         <div className="flex-1 overflow-y-auto">
@@ -98,7 +129,7 @@ export default function DocumentsPage({
             <div className="flex items-center justify-center h-64">
               <div className="text-center">
                 <p className="text-destructive font-medium">Error loading collection</p>
-                <p className="text-muted-foreground mt-2">{error}</p>
+                <p className="text-muted-foreground mt-2">{collectionError}</p>
               </div>
             </div>
           </div>
@@ -137,9 +168,14 @@ export default function DocumentsPage({
             </div>
             <DataTable
               columns={documentColumns(handleEdit)}
-              data={mockDocuments}
+              data={documents}
               searchable={true}
-              pageSize={5}
+              search={search}
+              onFilterChange={handleFilterChange}
+              onPageChange={handlePageChange}
+              currentPage={currentPage}
+              totalPages={metadata?.totalPages || 1}
+              pageSize={queryParams.limit}
             />
           </div>
         </div>

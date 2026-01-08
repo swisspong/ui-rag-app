@@ -38,7 +38,7 @@ The response follows a standardized format with `data` containing the list of do
     status: string
     createdAt: string
   }>
-  meta: {
+  metadata: {
     page: number
     limit: number
     total: number
@@ -84,7 +84,6 @@ When `select=true` is provided, the API returns a list of all documents without 
   data: Array<{
     id: string
     name: string
-    metadata: null
   }>
 }
 ```
@@ -117,7 +116,7 @@ curl -X GET "http://localhost:8005/collection/123/documents?page=1&limit=10"
       "createdAt": "2024-01-15T11:00:00Z"
     }
   ],
-  "meta": {
+  "metadata": {
     "page": 1,
     "limit": 10,
     "total": 20,
@@ -142,12 +141,10 @@ curl -X GET "http://localhost:8005/collection/123/documents?select=true"
     {
       "id": "doc_1",
       "name": "Invoice 123",
-      "metadata": null
     },
     {
       "id": "doc_2",
       "name": "Meeting Notes",
-      "metadata": null
     }
   ]
 }

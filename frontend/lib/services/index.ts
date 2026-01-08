@@ -5,3 +5,5 @@
 
 export * from './collection.service'
 export { collectionService } from './collection.service'
+export * from './document.service'
+export { documentService } from './document.service'

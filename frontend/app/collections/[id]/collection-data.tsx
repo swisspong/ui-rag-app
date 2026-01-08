@@ -26,13 +26,7 @@ export interface File {
   uploadedDate: string
 }
 
-export interface Document {
-  id: string
-  documentName: string
-  filename: string | null
-  status: "completed" | "processing" | "pending" | "failed"
-  createdDate: string
-}
+import type { Document as CollectionDocument } from "@/lib/types/document.types"
 
 export interface Chunk {
   id: string
@@ -95,41 +89,46 @@ export const mockFiles: File[] = [
   },
 ]
 
-export const mockDocuments: Document[] = [
+export const mockDocuments: CollectionDocument[] = [
   {
     id: "1",
-    documentName: "product_manual_v2.pdf",
+    name: "product_manual_v2.pdf",
     filename: "product_manual_v2.pdf",
+    content: "",
     status: "completed",
-    createdDate: "2024-01-15",
+    createdAt: "2024-01-15",
   },
   {
     id: "2",
-    documentName: "user_guide_getting_started.pdf",
+    name: "user_guide_getting_started.pdf",
     filename: "user_guide_getting_started.pdf",
+    content: "",
     status: "completed",
-    createdDate: "2024-01-16",
+    createdAt: "2024-01-16",
   },
   {
     id: "3",
-    documentName: "technical_specs.pdf",
-    filename: null,
+    name: "technical_specs.pdf",
+    filename: "",
+    content: "",
     status: "processing",
-    createdDate: "2024-01-17",
+    createdAt: "2024-01-17",
   },
   {
     id: "4",
-    documentName: "faq_troubleshooting.pdf",
+    name: "faq_troubleshooting.pdf",
     filename: "faq_troubleshooting.pdf",
+    content: "",
     status: "completed",
-    createdDate: "2024-01-18",
+    createdAt: "2024-01-18",
   },
   {
     id: "5",
-    documentName: "training_materials.pdf",
-    filename: null,
+    name: "training_materials.pdf",
+    filename: "",
+    content: "",
     status: "pending",
-    createdDate: "2024-01-19",
+    createdAt: "2024-01-19",
   },
 ]
 
@@ -383,8 +382,8 @@ export const collectionFileColumns: ColumnDef<import("@/lib/types/collection.typ
       const formattedSize = size < 1024
         ? `${size} B`
         : size < 1024 * 1024
-        ? `${(size / 1024).toFixed(1)} KB`
-        : `${(size / (1024 * 1024)).toFixed(1)} MB`
+          ? `${(size / 1024).toFixed(1)} KB`
+          : `${(size / (1024 * 1024)).toFixed(1)} MB`
       return <div>{formattedSize}</div>
     },
   },
@@ -427,17 +426,18 @@ export const collectionFileColumns: ColumnDef<import("@/lib/types/collection.typ
 ]
 
 // Column definitions for Documents
-export const documentColumns = (onEdit?: (document: Document) => void): ColumnDef<Document>[] => [
+// Column definitions for Documents
+export const documentColumns = (onEdit?: (document: CollectionDocument) => void): ColumnDef<CollectionDocument>[] => [
   {
-    accessorKey: "documentName",
+    accessorKey: "name",
     header: "Document Name",
-    cell: ({ row }) => <div>{row.getValue("documentName")}</div>,
+    cell: ({ row }) => <div>{row.getValue("name")}</div>,
   },
   {
     accessorKey: "filename",
     header: "Filename",
     cell: ({ row }) => {
-      const filename = row.getValue("filename") as string | null
+      const filename = row.getValue("filename") as string
       if (!filename) {
         return (
           <span className="px-2 py-0.5 rounded-md bg-muted text-muted-foreground text-xs italic font-medium">
@@ -452,8 +452,8 @@ export const documentColumns = (onEdit?: (document: Document) => void): ColumnDe
     accessorKey: "status",
     header: "OCR Status",
     cell: ({ row }) => {
-      const status = row.getValue("status") as "completed" | "processing" | "pending" | "failed"
-      return <StatusBadge status={status} />
+      const status = row.getValue("status") as string
+      return <StatusBadge status={status as "completed" | "processing" | "pending" | "failed"} />
     },
   },
   {
@@ -707,8 +707,8 @@ export function CollectionTabs({ collectionId }: { collectionId: string }) {
   const getTabClassName = (path: string) => {
     const isActive = pathname === `/collections/${collectionId}${path}`
     return `flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${isActive
-        ? "bg-primary text-primary-foreground"
-        : "hover:bg-muted"
+      ? "bg-primary text-primary-foreground"
+      : "hover:bg-muted"
       }`
   }
 
