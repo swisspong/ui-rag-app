@@ -3,8 +3,11 @@ import type {
     ChunkDocumentsResponse,
     GetDocumentChunksParams,
     GetDocumentChunksResponse,
+    GetDocumentVersionChunksParams,
+    GetDocumentVersionChunksResponse,
 } from '@/lib/types'
 import { ApiError } from './collection.service'
+
 
 /**
  * Base URL for the API
@@ -125,9 +128,61 @@ export async function chunkDocuments(
 }
 
 /**
+ * Get document chunks for a specific document version
+ * 
+ * @param collectionId - The collection ID
+ * @param documentId - The document ID
+ * @param version - The document version
+ * @param params - Query parameters
+ * @returns Promise resolving to the list of document version chunks
+ */
+export async function getDocumentVersionChunks(
+    collectionId: string,
+    documentId: string,
+    version: number,
+    params: GetDocumentVersionChunksParams = {}
+): Promise<GetDocumentVersionChunksResponse> {
+    const queryString = buildQueryString(params)
+    const url = `${API_BASE_URL}/collections/${collectionId}/documents/${documentId}/version/${version}/chunks${queryString}`
+
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            cache: 'no-store',
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+            throw new ApiError(
+                data.message || 'Failed to fetch document version chunks',
+                response.status,
+                data
+            )
+        }
+
+        return data
+    } catch (error) {
+        if (error instanceof ApiError) {
+            throw error
+        }
+
+        throw new ApiError(
+            error instanceof Error ? error.message : 'An unexpected error occurred',
+            undefined,
+            undefined
+        )
+    }
+}
+
+/**
  * Document Chunk service object
  */
 export const documentChunkService = {
     getDocumentChunks,
     chunkDocuments,
+    getDocumentVersionChunks,
 }

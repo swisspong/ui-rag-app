@@ -10,6 +10,7 @@ export interface DocumentChunkMetadata {
     page: number
     limit: number
     total: number
+    totalPages: number
     hasNextPage: boolean
     hasPreviousPage: boolean
 }
@@ -31,4 +32,22 @@ export interface ChunkDocumentsRequest {
 
 export interface ChunkDocumentsResponse {
     success: boolean
+}
+
+export interface DocumentVersionChunk {
+    id: string
+    content: string
+    meta: Record<string, any>
+    status: string
+}
+
+export interface GetDocumentVersionChunksParams {
+    page?: number
+    limit?: number
+    search?: string
+}
+
+export interface GetDocumentVersionChunksResponse {
+    data: DocumentVersionChunk[]
+    metadata: DocumentChunkMetadata
 }

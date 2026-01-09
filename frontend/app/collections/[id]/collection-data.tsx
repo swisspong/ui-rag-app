@@ -639,7 +639,7 @@ export const documentChunkColumns: ColumnDef<DocumentChunk>[] = [
 
       return (
         <Link
-          href={`/collections/${collectionId}/document-chunk/${row.original.id}`}
+          href={`/collections/${collectionId}/document-chunk/${row.original.id}/version/${row.original.version}`}
           className="font-medium text-primary hover:underline hover:text-primary/80 transition-colors"
         >
           {row.getValue("name")}
@@ -696,7 +696,7 @@ export const documentChunkColumns: ColumnDef<DocumentChunk>[] = [
 
       return (
         <ActionsDropdown>
-          <Link href={`/collections/${collectionId}/document-chunk/${row.original.id}`}>
+          <Link href={`/collections/${collectionId}/document-chunk/${row.original.id}/version/${row.original.version}`}>
             <DropdownMenuItem>
               <Eye className="mr-2 h-4 w-4" />
               View Chunks

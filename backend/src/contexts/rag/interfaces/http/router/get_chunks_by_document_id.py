@@ -19,7 +19,7 @@ from . import router
 
 
 @router.get(
-    "/collections/{collection_id}/documents/{document_id}/version/{version}/chunks",
+    "/{collection_id}/documents/{document_id}/version/{version}/chunks",
     response_model=GetChunksByDocumentIdResponse,
     status_code=status.HTTP_200_OK,
     summary="Get document chunks",
