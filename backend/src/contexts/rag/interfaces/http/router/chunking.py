@@ -13,20 +13,22 @@ from . import router
 
 
 @router.post(
-    "/chunk",
+    "/{collection_id}/chunking",
     response_model=ChunkingResponse,
     status_code=status.HTTP_200_OK,
-    summary="Get a list of collections",
-    description="Retrieves a paginated list of collections with optional search functionality"
+    summary="Chunk documents in a collection",
+    description="Chunk documents in a collection"
 )
 @inject
 async def chunking(
+    collection_id: str,
     request: ChunkingRequest,
     chunking_handler: ChunkingHandler = Depends(
         Provide[ApplicationContainer.rag_package.chunking_handler]),
 ) -> ChunkingResponse:
+
     input = ChunkingInput(
-        collection_id=request.collection_id,
+        collection_id=collection_id,
         document_ids=request.document_ids,
         max_token_size=request.chunk_size,
         overlap_token_size=request.overlap

@@ -1,5 +1,6 @@
 from typing import Any, List, Optional
 import json
+from datetime import timezone
 
 from src.shared.infrastructure.database.asyncpg_connection import AsyncPGConnection
 from src.contexts.rag.application.queries.repoistories.chunk_read_repository import ChunkReadRepository
@@ -146,7 +147,7 @@ class PostgresChunkReadRepository(ChunkReadRepository):
                     version=row['version'],
                     name=row['name'],
                     chunk_count=row['chunk_count'],
-                    created_at=row['created_at']
+                    created_at=row['created_at'].replace(tzinfo=timezone.utc)
                 )
                 for row in rows
             ], total

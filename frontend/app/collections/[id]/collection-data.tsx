@@ -16,6 +16,7 @@ import { StatusBadge } from "@/components/status-badge"
 import { ActionsDropdown } from "@/components/actions-dropdown"
 import { DeleteAction } from "@/components/delete-action"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { FormattedDate } from "@/components/formatted-date"
 
 // Types
 export interface File {
@@ -336,7 +337,7 @@ export const fileColumns: ColumnDef<File>[] = [
         </Button>
       )
     },
-    cell: ({ row }) => <div>{row.getValue("uploadedDate")}</div>,
+    cell: ({ row }) => <FormattedDate date={row.getValue("uploadedDate")} />,
   },
   {
     id: "actions",
@@ -408,12 +409,7 @@ export const collectionFileColumns: ColumnDef<import("@/lib/types/collection.typ
         </Button>
       )
     },
-    cell: ({ row }) => {
-      const createdAt = row.getValue("createdAt") as string
-      // Format date to YYYY-MM-DD
-      const formattedDate = new Date(createdAt).toISOString().split('T')[0]
-      return <div>{formattedDate}</div>
-    },
+    cell: ({ row }) => <FormattedDate date={row.getValue("createdAt")} />,
   },
   {
     id: "actions",
@@ -686,7 +682,7 @@ export const documentChunkColumns: ColumnDef<DocumentChunk>[] = [
         </Button>
       )
     },
-    cell: ({ row }) => <div>{row.getValue("createdAt")}</div>,
+    cell: ({ row }) => <FormattedDate date={row.getValue("createdAt")} />,
   },
   {
     id: "actions",

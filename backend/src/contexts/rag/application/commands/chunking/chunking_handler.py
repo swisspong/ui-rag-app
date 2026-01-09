@@ -2,6 +2,7 @@ from src.contexts.rag.domain.services.tokenizer import Tokenizer
 from src.contexts.rag.domain.repositories.chunk_repository import ChunkRepository
 from src.contexts.rag.domain.repositories.document_repository import DocumentRepository
 from src.contexts.rag.domain.value_objects.collection_id import CollectionID
+from src.contexts.rag.domain.value_objects.document_id import DocumentID
 from src.contexts.rag.application.commands.chunking.chunking_input import ChunkingInput
 from src.contexts.rag.domain.entities.new_chunk import Chunk
 from src.contexts.rag.domain.value_objects.chunk_id import ChunkID
@@ -33,7 +34,7 @@ class ChunkingHandler:
             document = await self._document_repo.get_by_id(document_id)
             if not document:
                 raise NotFound("Document not found")
-            print(document)
+                
             if not document_id:
                 raise ValueError()
 

@@ -14,7 +14,7 @@ import {
 } from "@/components/document-chunk"
 import { toast } from "sonner"
 import { useCollection } from "@/lib/hooks/useCollection"
-import { useGetCollectionDocuments, useGetDocumentChunks } from "@/lib/hooks/api"
+import { useGetCollectionDocuments, useGetDocumentChunks, useChunkDocuments } from "@/lib/hooks/api"
 
 export default function DocumentChunkPage({
   params,
@@ -38,12 +38,14 @@ export default function DocumentChunkPage({
 
   // Data fetching
   const { collection, isLoading: isCollectionLoading, error: collectionError } = useCollection(id)
-  const { data: documentChunks, isLoading: isChunksLoading, metadata } = useGetDocumentChunks(id, queryParams)
+  const { data: documentChunks, isLoading: isChunksLoading, metadata, refetch } = useGetDocumentChunks(id, queryParams)
   const { data: documents } = useGetCollectionDocuments(id, { select: true })
+
+  // Mutations
+  const { chunkDocuments, isLoading: isChunking } = useChunkDocuments()
 
   // Dialog state
   const [isDialogOpen, setIsDialogOpen] = React.useState(false)
-  const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   const handlePageChange = (pageIndex: number) => {
     const params = new URLSearchParams(searchParams.toString())
@@ -63,15 +65,15 @@ export default function DocumentChunkPage({
   }
 
   const handleAddDocumentChunk = async (data: DocumentChunkFormValues) => {
-    console.log("Submitted document chunk data:", data)
-    setIsSubmitting(true)
-
-    // Simulate async operation
-    await new Promise(resolve => setTimeout(resolve, 1000))
-
-    setIsSubmitting(false)
-    setIsDialogOpen(false)
-    toast.success("Successfully added document chunk for document ID: " + data.documentId)
+    try {
+      await chunkDocuments(id, { document_ids: [data.documentId] })
+      setIsDialogOpen(false)
+      // Refetch to show new status
+      refetch()
+    } catch (error) {
+      console.error("Failed to trigger chunking:", error)
+      // Error is already handled by the hook (toast)
+    }
   }
 
   // Show loading state
@@ -154,7 +156,7 @@ export default function DocumentChunkPage({
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
         onSubmit={handleAddDocumentChunk}
-        isLoading={isSubmitting}
+        isLoading={isChunking}
         documents={documents.map(d => ({ id: d.id, name: d.name }))}
       />
     </div>
