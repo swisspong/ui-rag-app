@@ -124,8 +124,7 @@ class RAGContainer(containers.DeclarativeContainer):
         tokenizer=tokenizer,
         chunk_repository=chunk_repository,
         document_repository=document_repository,
-        id_generator=id_generator,
-        rag_process_repository=rag_process_repository
+        id_generator=id_generator
     )
 
     get_collection_query = providers.Factory(

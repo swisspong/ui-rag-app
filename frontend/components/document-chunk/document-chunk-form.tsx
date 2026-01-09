@@ -9,7 +9,6 @@ import {
   FieldError,
   FieldContent,
 } from "@/components/ui/field"
-import { Button } from "@/components/ui/button"
 import {
   Select,
   SelectContent,
@@ -18,27 +17,23 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { documentChunkSchema, type DocumentChunkFormValues } from "./document-chunk-schema"
+import { type DocumentSelect } from "@/lib/types/document.types"
 
-const mockDocuments = [
-  { id: "1", name: "Product Manual" },
-  { id: "2", name: "User Guide" },
-  { id: "3", name: "API Documentation" },
-  { id: "4", name: "Technical Specifications" },
-]
+
 
 interface DocumentChunkFormProps {
   onSubmit: (data: DocumentChunkFormValues) => void | Promise<void>
   defaultValues?: Partial<DocumentChunkFormValues>
   isLoading?: boolean
+  documents: DocumentSelect[]
 }
 
 export function DocumentChunkForm({
   onSubmit,
   defaultValues,
-  isLoading = false,
+  documents,
 }: DocumentChunkFormProps) {
   const {
-    register,
     handleSubmit,
     setValue,
     formState: { errors },
@@ -63,7 +58,7 @@ export function DocumentChunkForm({
                 <SelectValue placeholder="Select a document" />
               </SelectTrigger>
               <SelectContent>
-                {mockDocuments.map((document) => (
+                {documents.map((document) => (
                   <SelectItem key={document.id} value={document.id}>
                     {document.name}
                   </SelectItem>

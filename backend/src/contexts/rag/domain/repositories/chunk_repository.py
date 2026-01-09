@@ -26,3 +26,7 @@ class ChunkRepository(ABC):
     @abstractmethod
     async def delete_multiple_by_ids_and_collection_id(self, chunk_ids: List[ChunkID], collection_id: CollectionID, conn: Any = None) -> int:
         pass
+
+    @abstractmethod
+    async def get_latest_version_by_document_id(self, collection_id: CollectionID, document_id: DocumentID, conn: Any = None) -> Optional[int]:
+        pass

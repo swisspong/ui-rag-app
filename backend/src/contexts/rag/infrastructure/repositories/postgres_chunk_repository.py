@@ -13,6 +13,7 @@ from src.contexts.rag.infrastructure.sql.get_chunks_by_collection_id import GET_
 from src.contexts.rag.infrastructure.sql.get_chunk_by_id_and_collection_id import GET_CHUNK_BY_ID_AND_COLLECTION_ID
 from src.contexts.rag.infrastructure.sql.delete_chunk_by_id_and_collection_id import DELETE_CHUNK_BY_ID_AND_COLLECTION_ID
 from src.contexts.rag.infrastructure.sql.delete_multiple_chunks_by_ids_and_collection_id import DELETE_MULTIPLE_CHUNKS_BY_IDS_AND_COLLECTION_ID
+from src.contexts.rag.infrastructure.sql.get_latest_chunk_version_by_document_id import GET_LATEST_CHUNK_VERSION_BY_DOCUMENT_ID
 from src.shared.infrastructure.errors import (
     DuplicateRecordError,
     QueryFailed,
@@ -37,6 +38,7 @@ class PostgresChunkRepository(ChunkRepository):
                 data.process_status.value,
                 data.created_at,
                 data.updated_at,
+                data.version,
                 conn=conn,
             )
             return data
@@ -62,7 +64,8 @@ class PostgresChunkRepository(ChunkRepository):
                     content=row["content"],
                     order_index=row["order_index"],
                     meta=json.loads(row["meta"]) if row["meta"] else {},
-                    process_status=ProcessStatus(row["process_status"]) if row.get("process_status") else ProcessStatus.PENDING,
+                    process_status=ProcessStatus(row["process_status"]) if row.get(
+                        "process_status") else ProcessStatus.PENDING,
                     created_at=row["created_at"],
                     updated_at=row["updated_at"],
                 )
@@ -90,7 +93,8 @@ class PostgresChunkRepository(ChunkRepository):
                 content=row["content"],
                 order_index=row["order_index"],
                 meta=json.loads(row["meta"]) if row["meta"] else {},
-                process_status=ProcessStatus(row["process_status"]) if row.get("process_status") else ProcessStatus.PENDING,
+                process_status=ProcessStatus(row["process_status"]) if row.get(
+                    "process_status") else ProcessStatus.PENDING,
                 created_at=row["created_at"],
                 updated_at=row["updated_at"],
             )
@@ -113,7 +117,7 @@ class PostgresChunkRepository(ChunkRepository):
         try:
             if not chunk_ids:
                 return 0
-            
+
             chunk_id_values = [chunk_id.value for chunk_id in chunk_ids]
             result = await self._db.execute(
                 DELETE_MULTIPLE_CHUNKS_BY_IDS_AND_COLLECTION_ID,
@@ -123,7 +127,22 @@ class PostgresChunkRepository(ChunkRepository):
             )
             # Parse result to get the number of deleted rows
             # result format is "DELETE <count>"
-            deleted_count = int(result.split()[1]) if result and result.startswith("DELETE") else 0
+            deleted_count = int(
+                result.split()[1]) if result and result.startswith("DELETE") else 0
             return deleted_count
         except DatabaseError as e:
-            raise QueryFailed("DELETE_MULTIPLE_CHUNKS_BY_IDS_AND_COLLECTION_ID", e) from e
+            raise QueryFailed(
+                "DELETE_MULTIPLE_CHUNKS_BY_IDS_AND_COLLECTION_ID", e) from e
+
+    async def get_latest_version_by_document_id(self, collection_id: CollectionID, document_id: DocumentID, conn: Any = None) -> Optional[int]:
+        try:
+            row = await self._db.fetchrow(
+                GET_LATEST_CHUNK_VERSION_BY_DOCUMENT_ID,
+                collection_id.value,
+                document_id.value,
+                conn=conn
+            )
+            return row["latest_version"] if row and row["latest_version"] is not None else None
+        except DatabaseError as e:
+            raise QueryFailed(
+                "GET_LATEST_CHUNK_VERSION_BY_DOCUMENT_ID", e) from e

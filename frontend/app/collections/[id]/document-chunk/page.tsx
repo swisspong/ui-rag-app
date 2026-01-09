@@ -14,6 +14,7 @@ import {
 } from "@/components/document-chunk"
 import { toast } from "sonner"
 import { useCollection } from "@/lib/hooks/useCollection"
+import { useGetCollectionDocuments } from "@/lib/hooks/api"
 
 export default function DocumentChunkPage({
   params,
@@ -22,7 +23,8 @@ export default function DocumentChunkPage({
 }) {
   const { id } = React.use(params)
   const { collection, isLoading, error } = useCollection(id)
-  
+  const { data: documents } = useGetCollectionDocuments(id, { select: true })
+
   // Dialog state
   const [isDialogOpen, setIsDialogOpen] = React.useState(false)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
@@ -30,10 +32,10 @@ export default function DocumentChunkPage({
   const handleAddDocumentChunk = async (data: DocumentChunkFormValues) => {
     console.log("Submitted document chunk data:", data)
     setIsSubmitting(true)
-    
+
     // Simulate async operation
     await new Promise(resolve => setTimeout(resolve, 1000))
-    
+
     setIsSubmitting(false)
     setIsDialogOpen(false)
     toast.success("Successfully added document chunk for document ID: " + data.documentId)
@@ -109,12 +111,13 @@ export default function DocumentChunkPage({
           </div>
         </div>
       </div>
-      
+
       <DocumentChunkFormDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
         onSubmit={handleAddDocumentChunk}
         isLoading={isSubmitting}
+        documents={documents.map(d => ({ id: d.id, name: d.name }))}
       />
     </div>
   )

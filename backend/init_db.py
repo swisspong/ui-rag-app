@@ -58,6 +58,7 @@ TABLES = {
                     process_status VARCHAR(50) DEFAULT 'PENDING',
                     created_at TIMESTAMP(0) DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP(0) DEFAULT CURRENT_TIMESTAMP,
+                    version INTEGER DEFAULT 1,
                  CONSTRAINT CHUNKS_PK PRIMARY KEY (id)
                     )"""
     }
@@ -126,6 +127,21 @@ async def main():
         except Exception:
             print(f"Creating table {k}...")
             await db.execute(v["ddl"])
+
+    # Migration: Add version column to CHUNKS if it doesn't exist
+    try:
+        check_version_col_sql = """
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name='chunks' AND column_name='version'
+        """
+        has_version = await db.fetchrow(check_version_col_sql)
+        if not has_version:
+            print("Adding version column to CHUNKS table...")
+            await db.execute("ALTER TABLE CHUNKS ADD COLUMN version INTEGER DEFAULT 1")
+    except Exception as e:
+        print(f"Failed to migrate CHUNKS table: {e}")
+
     table_names = list(TABLES.keys())
     table_names_lower = [t.lower() for t in table_names]
     check_all_indexes_sql = """
