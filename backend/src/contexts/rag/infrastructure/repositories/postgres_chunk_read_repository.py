@@ -4,9 +4,14 @@ import json
 from src.shared.infrastructure.database.asyncpg_connection import AsyncPGConnection
 from src.contexts.rag.application.queries.repoistories.chunk_read_repository import ChunkReadRepository
 from src.contexts.rag.application.queries.models.chunk_read_model import ChunkReadModel
+from src.contexts.rag.application.queries.models.document_chunk_summary_read_model import DocumentChunkSummaryReadModel
 from src.contexts.rag.infrastructure.sql.get_chunks_by_collection_and_file_id import GET_CHUNKS_BY_COLLECTION_AND_FILE_ID
 from src.contexts.rag.infrastructure.sql.get_chunk_by_id_and_collection_id import GET_CHUNK_BY_ID_AND_COLLECTION_ID
 from src.contexts.rag.infrastructure.sql.get_all_chunks_by_collection_id import GET_ALL_CHUNKS_BY_COLLECTION_ID
+from src.contexts.rag.infrastructure.sql.get_document_summaries_in_collection import (
+    GET_DOCUMENT_SUMMARIES_IN_COLLECTION,
+    COUNT_DOCUMENT_SUMMARIES_IN_COLLECTION
+)
 from src.contexts.rag.domain.value_objects.collection_id import CollectionID
 from src.contexts.collections.domain.value_objects.collection_file_id import CollectionFileID
 from src.shared.infrastructure.errors import (
@@ -104,3 +109,49 @@ class PostgresChunkReadRepository(ChunkReadRepository):
             print(e)
             raise QueryFailed(
                 "GET_ALL_CHUNKS_BY_COLLECTION_ID", e) from e
+
+    async def get_document_summaries_by_collection_id(
+        self,
+        collection_id: CollectionID,
+        offset: int,
+        limit: int,
+        search: Optional[str] = None,
+        conn: Any = None
+    ) -> tuple[List[DocumentChunkSummaryReadModel], int]:
+        try:
+            search_param = f"%{search}%" if search else None
+
+            # Get total count
+            count_row = await self._db.fetchrow(
+                COUNT_DOCUMENT_SUMMARIES_IN_COLLECTION,
+                collection_id.value,
+                search_param,
+                conn=conn
+            )
+            total = count_row['total'] if count_row else 0
+
+            # Get data
+            rows = await self._db.fetch(
+                GET_DOCUMENT_SUMMARIES_IN_COLLECTION,
+                collection_id.value,
+                search_param,
+                offset,
+                limit,
+                conn=conn
+            )
+
+            return [
+                DocumentChunkSummaryReadModel(
+                    id=row['id'],
+                    version=row['version'],
+                    name=row['name'],
+                    chunk_count=row['chunk_count'],
+                    created_at=row['created_at']
+                )
+                for row in rows
+            ], total
+
+        except DatabaseError as e:
+            print(e)
+            raise QueryFailed(
+                "GET_DOCUMENT_SUMMARIES_IN_COLLECTION", e) from e

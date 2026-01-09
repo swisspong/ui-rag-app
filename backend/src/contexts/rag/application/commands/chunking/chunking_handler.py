@@ -33,8 +33,6 @@ class ChunkingHandler:
             document = await self._document_repo.get_by_id(document_id)
             if not document:
                 raise NotFound("Document not found")
-            document = await self._document_repo.get_by_id(document_id)
-            print("test test")
             print(document)
             if not document_id:
                 raise ValueError()

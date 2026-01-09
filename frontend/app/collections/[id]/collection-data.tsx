@@ -33,6 +33,7 @@ export interface Chunk {
   documentName: string
   content: string
   status: "completed" | "processing" | "pending" | "failed"
+  version: number
   meta?: Record<string, any> | null
 }
 
@@ -40,6 +41,7 @@ export interface DocumentChunk {
   id: string
   documentName: string
   chunkCount: number
+  version: number
   createdDate: string
 }
 
@@ -138,6 +140,7 @@ export const mockChunks: Chunk[] = [
     documentName: "product_manual_v2.pdf",
     content: "This product manual provides comprehensive instructions for using our product...",
     status: "completed",
+    version: 1,
     meta: {
       source: "PDF",
       page: 1,
@@ -151,6 +154,7 @@ export const mockChunks: Chunk[] = [
     documentName: "product_manual_v2.pdf",
     content: "Chapter 1: Introduction. Welcome to our product. This section covers basic setup...",
     status: "completed",
+    version: 1,
     meta: {
       source: "PDF",
       page: 2,
@@ -164,6 +168,7 @@ export const mockChunks: Chunk[] = [
     documentName: "user_guide_getting_started.pdf",
     content: "Getting Started Guide. This guide will help you understand the basics...",
     status: "processing",
+    version: 1,
     meta: {
       source: "PDF",
       page: 1,
@@ -177,6 +182,7 @@ export const mockChunks: Chunk[] = [
     documentName: "user_guide_getting_started.pdf",
     content: "Step 1: Installation. Follow these steps to install the software...",
     status: "pending",
+    version: 1,
     meta: null,
   },
   {
@@ -184,6 +190,7 @@ export const mockChunks: Chunk[] = [
     documentName: "technical_specs.pdf",
     content: "Technical Specifications Document. This document contains detailed specs...",
     status: "failed",
+    version: 1,
     meta: {
       source: "PDF",
       page: 1,
@@ -199,30 +206,35 @@ export const mockDocumentChunks: DocumentChunk[] = [
     id: "1",
     documentName: "product_manual_v2.pdf",
     chunkCount: 15,
+    version: 1,
     createdDate: "2024-01-15",
   },
   {
     id: "2",
     documentName: "user_guide_getting_started.pdf",
     chunkCount: 12,
+    version: 1,
     createdDate: "2024-01-16",
   },
   {
     id: "3",
     documentName: "technical_specs.pdf",
     chunkCount: 8,
+    version: 1,
     createdDate: "2024-01-17",
   },
   {
     id: "4",
     documentName: "faq_troubleshooting.pdf",
     chunkCount: 20,
+    version: 1,
     createdDate: "2024-01-18",
   },
   {
     id: "5",
     documentName: "training_materials.pdf",
     chunkCount: 0,
+    version: 1,
     createdDate: "2024-01-19",
   },
 ]
@@ -500,6 +512,11 @@ export const chunkColumns = (onEdit?: (chunk: Chunk) => void): ColumnDef<Chunk>[
     },
   },
   {
+    accessorKey: "version",
+    header: "Version",
+    cell: ({ row }) => <div>{row.getValue("version")}</div>,
+  },
+  {
     accessorKey: "meta",
     header: "Meta",
     cell: ({ row }) => {
@@ -654,6 +671,11 @@ export const documentChunkColumns: ColumnDef<DocumentChunk>[] = [
       )
     },
     cell: ({ row }) => <div>{row.getValue("chunkCount")}</div>,
+  },
+  {
+    accessorKey: "version",
+    header: "Version",
+    cell: ({ row }) => <div>{row.getValue("version")}</div>,
   },
   {
     accessorKey: "createdDate",
