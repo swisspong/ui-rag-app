@@ -14,5 +14,7 @@ from . import (
     update_chunk,
     delete_multiple_chunks,
     ingest_multiple_chunks_by_collection,
-    get_document_chunks_in_collection
+    ingest_multiple_chunks_by_collection,
+    get_document_chunks_in_collection,
+    get_chunks_by_document_id
 )

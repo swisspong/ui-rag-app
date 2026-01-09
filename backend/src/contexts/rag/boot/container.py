@@ -29,6 +29,7 @@ from src.shared.infrastructure.repositories.postgres_asset_repository import Pos
 from src.contexts.rag.infrastructure.repositories.postgres_collection_file_read_repository import PostgresCollectionFileReadRepository
 from src.contexts.rag.application.queries.get_collection_file_in_collection.get_collection_file_in_collection_query import GetCollectionFileInCollectionQuery
 from src.contexts.rag.application.queries.get_document_chunks_in_collection.get_document_chunks_in_collection_query import GetDocumentChunksInCollectionQuery
+from src.contexts.rag.application.queries.get_document_chunks.get_document_chunks_query import GetDocumentChunksQuery
 
 
 class RAGContainer(containers.DeclarativeContainer):
@@ -135,6 +136,11 @@ class RAGContainer(containers.DeclarativeContainer):
     get_documents_in_collection_query = providers.Factory(
         GetDocumentsInCollectionQuery,
         document_read_repository=document_read_repository
+    )
+
+    get_document_chunks_query = providers.Factory(
+        GetDocumentChunksQuery,
+        chunk_read_repository=chunk_read_repository
     )
     get_chunks_by_collection_file_id_query = providers.Factory(
         GetChunksByCollectionFileIdQuery,

@@ -2,6 +2,7 @@ from typing import Any, List, Optional
 from abc import ABC, abstractmethod
 from src.contexts.rag.application.queries.models.chunk_read_model import ChunkReadModel
 from src.contexts.rag.application.queries.models.document_chunk_summary_read_model import DocumentChunkSummaryReadModel
+from src.contexts.rag.application.queries.models.document_chunk_read_model import DocumentChunkReadModel
 from src.contexts.rag.domain.value_objects.collection_id import CollectionID
 from src.contexts.collections.domain.value_objects.collection_file_id import CollectionFileID
 
@@ -28,4 +29,17 @@ class ChunkReadRepository(ABC):
         search: Optional[str] = None,
         conn: Any = None
     ) -> tuple[List[DocumentChunkSummaryReadModel], int]:
+        pass
+
+    @abstractmethod
+    async def get_chunks_by_collection_file_id(
+        self,
+        collection_id: str,
+        document_id: str,
+        version: int,
+        offset: int,
+        limit: int,
+        search: Optional[str] = None,
+        conn: Any = None
+    ) -> tuple[List[DocumentChunkReadModel], int]:
         pass

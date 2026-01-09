@@ -35,6 +35,7 @@ async def lifespan(app: FastAPI):
         "src.contexts.rag.interfaces.http.router.get_chunks_by_collection_id",
         "src.contexts.rag.interfaces.http.router.ingest_multiple_chunks_by_collection",
         "src.contexts.rag.interfaces.http.router.get_document_chunks_in_collection",
+        "src.contexts.rag.interfaces.http.router.get_chunks_by_document_id",
     ])
 
     database = container.database()

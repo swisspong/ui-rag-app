@@ -40,5 +40,5 @@ class ApplicationContainer(containers.DeclarativeContainer):
     rag_package = providers.Container(
         RAGContainer,
         database=database,
-        id_generator=id_generator
+        id_generator=id_generator,
     )

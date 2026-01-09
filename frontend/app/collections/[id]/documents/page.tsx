@@ -38,7 +38,7 @@ export default function DocumentsPage({
 
   // Data fetching
   const { collection, isLoading: isCollectionLoading, error: collectionError } = useCollection(id)
-  const { data: documents, isLoading: isDocumentsLoading, metadata } = useGetCollectionDocuments(id, queryParams)
+  const { data: documents, isLoading: isDocumentsLoading, metadata, refetch } = useGetCollectionDocuments(id, queryParams)
   const { data: files } = useGetFilesSelect({ collectionId: id })
   const { processOCR, isLoading: isOcrLoading } = useProcessOCR()
 
@@ -72,6 +72,7 @@ export default function DocumentsPage({
   const handleSubmit = async (data: DocumentFormData) => {
     try {
       await processOCR(id, { collection_file_ids: [data.fileId] })
+      await refetch()
       setIsDialogOpen(false)
       toast.success("Document processing started")
     } catch (error) {
