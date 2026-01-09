@@ -34,7 +34,7 @@ export function useGetDocumentChunks(
     const [error, setError] = React.useState<string | null>(null)
 
     // Destructure params to use in dependency array
-    const { offset, limit, search } = params
+    const { page, limit, search } = params
 
     const fetchDocumentChunks = React.useCallback(async () => {
         if (!collectionId) return
@@ -44,7 +44,7 @@ export function useGetDocumentChunks(
 
         try {
             const response = await documentChunkService.getDocumentChunks(collectionId, {
-                offset,
+                page,
                 limit,
                 search,
             })
@@ -60,7 +60,7 @@ export function useGetDocumentChunks(
         } finally {
             setIsLoading(false)
         }
-    }, [collectionId, offset, limit, search])
+    }, [collectionId, page, limit, search])
 
     React.useEffect(() => {
         fetchDocumentChunks()

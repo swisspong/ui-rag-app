@@ -21,13 +21,14 @@ from . import router
 async def get_document_chunks_in_collection(
     request: Request,
     collection_id: str,
-    offset: int = Query(0, description="Offset for pagination"),
-    limit: int = Query(10, description="Number of items per page"),
+    page: int = Query(1, description="Page number for pagination", ge=1),
+    limit: int = Query(10, description="Number of items per page", le=100),
     search: Optional[str] = Query(
         None, description="Search term for filtering"),
     query: GetDocumentChunksInCollectionQuery = Depends(
         Provide[ApplicationContainer.rag_package.get_document_chunks_in_collection_query])
 ) -> GetDocumentChunksInCollectionResponse:
+    offset = (page - 1) * limit
     input_dto = GetDocumentChunksInCollectionInput(
         collection_id=CollectionID(collection_id),
         offset=offset,
@@ -48,7 +49,7 @@ async def get_document_chunks_in_collection(
             for item in result.data
         ],
         metadata=DocumentChunkListMetadata(
-            offset=result.offset,
+            page=page,
             limit=result.limit,
             total=result.total,
             has_next_page=(result.offset + result.limit) < result.total,

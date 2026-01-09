@@ -24,7 +24,7 @@ class DocumentChunkItem(BaseModel):
 
 
 class DocumentChunkListMetadata(BaseModel):
-    offset: int
+    page: int
     limit: int
     total: int
     has_next_page: bool = Field(..., alias="hasNextPage")
@@ -34,7 +34,7 @@ class DocumentChunkListMetadata(BaseModel):
         populate_by_name = True
         json_schema_extra = {
             "example": {
-                "offset": 0,
+                "page": 1,
                 "limit": 10,
                 "total": 20,
                 "hasNextPage": True,

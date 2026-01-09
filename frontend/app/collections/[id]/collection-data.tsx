@@ -27,6 +27,7 @@ export interface File {
 }
 
 import type { Document as CollectionDocument } from "@/lib/types/document.types"
+import type { DocumentChunk } from "@/lib/types/document-chunk.types"
 
 export interface Chunk {
   id: string
@@ -37,13 +38,7 @@ export interface Chunk {
   meta?: Record<string, any> | null
 }
 
-export interface DocumentChunk {
-  id: string
-  documentName: string
-  chunkCount: number
-  version: number
-  createdDate: string
-}
+
 
 export interface SubChunk {
   id: string
@@ -204,38 +199,38 @@ export const mockChunks: Chunk[] = [
 export const mockDocumentChunks: DocumentChunk[] = [
   {
     id: "1",
-    documentName: "product_manual_v2.pdf",
+    name: "product_manual_v2.pdf",
     chunkCount: 15,
     version: 1,
-    createdDate: "2024-01-15",
+    createdAt: "2024-01-15",
   },
   {
     id: "2",
-    documentName: "user_guide_getting_started.pdf",
+    name: "user_guide_getting_started.pdf",
     chunkCount: 12,
     version: 1,
-    createdDate: "2024-01-16",
+    createdAt: "2024-01-16",
   },
   {
     id: "3",
-    documentName: "technical_specs.pdf",
+    name: "technical_specs.pdf",
     chunkCount: 8,
     version: 1,
-    createdDate: "2024-01-17",
+    createdAt: "2024-01-17",
   },
   {
     id: "4",
-    documentName: "faq_troubleshooting.pdf",
+    name: "faq_troubleshooting.pdf",
     chunkCount: 20,
     version: 1,
-    createdDate: "2024-01-18",
+    createdAt: "2024-01-18",
   },
   {
     id: "5",
-    documentName: "training_materials.pdf",
+    name: "training_materials.pdf",
     chunkCount: 0,
     version: 1,
-    createdDate: "2024-01-19",
+    createdAt: "2024-01-19",
   },
 ]
 
@@ -638,7 +633,7 @@ export const subChunkColumns = (onEdit?: (subChunk: SubChunk) => void): ColumnDe
 // Column definitions for Document Chunks
 export const documentChunkColumns: ColumnDef<DocumentChunk>[] = [
   {
-    accessorKey: "documentName",
+    accessorKey: "name",
     header: "Document Name",
     cell: ({ row }) => {
       const pathname = usePathname()
@@ -651,7 +646,7 @@ export const documentChunkColumns: ColumnDef<DocumentChunk>[] = [
           href={`/collections/${collectionId}/document-chunk/${row.original.id}`}
           className="font-medium text-primary hover:underline hover:text-primary/80 transition-colors"
         >
-          {row.getValue("documentName")}
+          {row.getValue("name")}
         </Link>
       )
     },
@@ -678,7 +673,7 @@ export const documentChunkColumns: ColumnDef<DocumentChunk>[] = [
     cell: ({ row }) => <div>{row.getValue("version")}</div>,
   },
   {
-    accessorKey: "createdDate",
+    accessorKey: "createdAt",
     header: ({ column }) => {
       return (
         <Button
@@ -691,7 +686,7 @@ export const documentChunkColumns: ColumnDef<DocumentChunk>[] = [
         </Button>
       )
     },
-    cell: ({ row }) => <div>{row.getValue("createdDate")}</div>,
+    cell: ({ row }) => <div>{row.getValue("createdAt")}</div>,
   },
   {
     id: "actions",

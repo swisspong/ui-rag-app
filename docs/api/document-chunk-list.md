@@ -15,7 +15,7 @@ All parameters are optional query parameters.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `offset` | number | `0` | Offset for pagination |
+| `page` | number | `1` | Page number for pagination |
 | `limit` | number | `10` | Number of items per page |
 | `search` | string | - | Optional search query to filter documents by content or filename |
 
@@ -38,7 +38,7 @@ The response follows a standardized format with `data` containing the list of do
     createdAt: string
   }>
   metadata: {
-    offset: number
+    page: number
     limit: number
     total: number
     hasNextPage: boolean
@@ -65,7 +65,7 @@ The `data` field is an array of document objects.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `offset` | number | Current pagination offset |
+| `page` | number | Current page number |
 | `limit` | number | Number of items per page |
 | `total` | number | Total number of documents matching the query |
 | `hasNextPage` | boolean | Whether there is a next page available |
@@ -76,7 +76,7 @@ The `data` field is an array of document objects.
 ## Example Request
 
 ```bash
-curl -X GET "http://localhost:8005/collection/123/documentChunks?offset=0&limit=10"
+curl -X GET "http://localhost:8005/collection/123/documentChunks?page=1&limit=10"
 ```
 
 ## Example Success Response
@@ -100,7 +100,7 @@ curl -X GET "http://localhost:8005/collection/123/documentChunks?offset=0&limit=
     }
   ],
   "metadata": {
-    "offset": 0,
+    "page": 1,
     "limit": 10,
     "total": 20,
     "hasNextPage": true,

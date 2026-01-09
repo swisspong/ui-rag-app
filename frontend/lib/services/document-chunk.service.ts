@@ -17,8 +17,8 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8005'
 function buildQueryString(params: GetDocumentChunksParams): string {
     const queryParams = new URLSearchParams()
 
-    if (params.offset !== undefined) {
-        queryParams.append('offset', params.offset.toString())
+    if (params.page !== undefined) {
+        queryParams.append('page', params.page.toString())
     }
     if (params.limit !== undefined) {
         queryParams.append('limit', params.limit.toString())
@@ -43,7 +43,7 @@ export async function getDocumentChunks(
     params: GetDocumentChunksParams = {}
 ): Promise<GetDocumentChunksResponse> {
     const queryString = buildQueryString(params)
-    const url = `${API_BASE_URL}/collection/${collectionId}/documentChunks${queryString}`
+    const url = `${API_BASE_URL}/collections/${collectionId}/documentChunks${queryString}`
 
     try {
         const response = await fetch(url, {

@@ -1,11 +1,11 @@
 "use client"
 
 import * as React from "react"
+import { useSearchParams, useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { DataTable } from "@/components/ui/data-table"
 import {
   CollectionHeader,
-  mockDocumentChunks,
   documentChunkColumns
 } from "../collection-data"
 import {
@@ -14,7 +14,7 @@ import {
 } from "@/components/document-chunk"
 import { toast } from "sonner"
 import { useCollection } from "@/lib/hooks/useCollection"
-import { useGetCollectionDocuments } from "@/lib/hooks/api"
+import { useGetCollectionDocuments, useGetDocumentChunks } from "@/lib/hooks/api"
 
 export default function DocumentChunkPage({
   params,
@@ -22,12 +22,45 @@ export default function DocumentChunkPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = React.use(params)
-  const { collection, isLoading, error } = useCollection(id)
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
+
+  // URL Params state
+  const currentPage = Number(searchParams.get("page")) || 1
+  const search = searchParams.get("search") || ""
+
+  const queryParams = React.useMemo(() => ({
+    page: currentPage,
+    limit: 10,
+    search
+  }), [currentPage, search])
+
+  // Data fetching
+  const { collection, isLoading: isCollectionLoading, error: collectionError } = useCollection(id)
+  const { data: documentChunks, isLoading: isChunksLoading, metadata } = useGetDocumentChunks(id, queryParams)
   const { data: documents } = useGetCollectionDocuments(id, { select: true })
 
   // Dialog state
   const [isDialogOpen, setIsDialogOpen] = React.useState(false)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+
+  const handlePageChange = (pageIndex: number) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set("page", String(pageIndex))
+    router.push(`${pathname}?${params.toString()}`, { scroll: false })
+  }
+
+  const handleFilterChange = (searchQuery: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (searchQuery) {
+      params.set("search", searchQuery)
+    } else {
+      params.delete("search")
+    }
+    params.set("page", "1")
+    router.push(`${pathname}?${params.toString()}`, { scroll: false })
+  }
 
   const handleAddDocumentChunk = async (data: DocumentChunkFormValues) => {
     console.log("Submitted document chunk data:", data)
@@ -42,13 +75,13 @@ export default function DocumentChunkPage({
   }
 
   // Show loading state
-  if (isLoading) {
+  if (isCollectionLoading || isChunksLoading) {
     return (
       <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden">
         <div className="flex-1 overflow-y-auto">
           <div className="p-4 lg:p-6 space-y-6">
             <div className="flex items-center justify-center h-64">
-              <p className="text-muted-foreground">Loading collection...</p>
+              <p className="text-muted-foreground">Loading...</p>
             </div>
           </div>
         </div>
@@ -57,7 +90,7 @@ export default function DocumentChunkPage({
   }
 
   // Show error state
-  if (error) {
+  if (collectionError) {
     return (
       <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden">
         <div className="flex-1 overflow-y-auto">
@@ -65,7 +98,7 @@ export default function DocumentChunkPage({
             <div className="flex items-center justify-center h-64">
               <div className="text-center">
                 <p className="text-destructive font-medium">Error loading collection</p>
-                <p className="text-muted-foreground mt-2">{error}</p>
+                <p className="text-muted-foreground mt-2">{collectionError}</p>
               </div>
             </div>
           </div>
@@ -100,13 +133,18 @@ export default function DocumentChunkPage({
                   Manage document chunking status and view chunks
                 </p>
               </div>
-              <Button onClick={() => setIsDialogOpen(true)}>Add Document</Button>
+              <Button onClick={() => setIsDialogOpen(true)}>Chunk Document</Button>
             </div>
             <DataTable
               columns={documentChunkColumns}
-              data={mockDocumentChunks}
+              data={documentChunks}
               searchable={true}
-              pageSize={5}
+              search={search}
+              onFilterChange={handleFilterChange}
+              onPageChange={handlePageChange}
+              currentPage={currentPage}
+              totalPages={metadata ? Math.ceil(metadata.total / metadata.limit) : 1}
+              pageSize={queryParams.limit}
             />
           </div>
         </div>

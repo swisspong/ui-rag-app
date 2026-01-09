@@ -7,7 +7,7 @@ export interface DocumentChunk {
 }
 
 export interface DocumentChunkMetadata {
-    offset: number
+    page: number
     limit: number
     total: number
     hasNextPage: boolean
@@ -15,7 +15,7 @@ export interface DocumentChunkMetadata {
 }
 
 export interface GetDocumentChunksParams {
-    offset?: number
+    page?: number
     limit?: number
     search?: string
 }
