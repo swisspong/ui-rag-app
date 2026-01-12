@@ -67,6 +67,7 @@ class OpenAIEmbedding(Embedding):
             client = AsyncOpenAI(
                 api_key=effective_api_key,
                 base_url=effective_base_url,
+                timeout=None,
             )
 
             # Make embedding request
@@ -82,4 +83,5 @@ class OpenAIEmbedding(Embedding):
             return np.array(embeddings, dtype=np.float32)
 
         except Exception as e:
+            print(e)
             raise RuntimeError(f"Failed to generate embeddings: {str(e)}") from e

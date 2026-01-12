@@ -7,6 +7,7 @@ from src.contexts.rag.application.queries.repoistories.chunk_read_repository imp
 from src.contexts.rag.application.queries.models.chunk_read_model import ChunkReadModel
 from src.contexts.rag.application.queries.models.document_chunk_summary_read_model import DocumentChunkSummaryReadModel
 from src.contexts.rag.application.queries.models.document_chunk_read_model import DocumentChunkReadModel
+from src.contexts.rag.application.queries.models.additional_chunk_read_model import AdditionalChunkReadModel
 from src.contexts.rag.infrastructure.sql.get_chunks_by_collection_and_file_id import GET_CHUNKS_BY_COLLECTION_AND_FILE_ID
 from src.contexts.rag.infrastructure.sql.get_chunk_by_id_and_collection_id import GET_CHUNK_BY_ID_AND_COLLECTION_ID
 from src.contexts.rag.infrastructure.sql.get_all_chunks_by_collection_id import GET_ALL_CHUNKS_BY_COLLECTION_ID
@@ -17,6 +18,10 @@ from src.contexts.rag.infrastructure.sql.get_document_summaries_in_collection im
 from src.contexts.rag.infrastructure.sql.get_chunks_by_collection_file_id_with_pagination import (
     GET_CHUNKS_WITH_PAGINATION,
     COUNT_CHUNKS
+)
+from src.contexts.rag.infrastructure.sql.get_additional_chunks_in_collection import (
+    GET_ADDITIONAL_CHUNKS_IN_COLLECTION,
+    COUNT_ADDITIONAL_CHUNKS_IN_COLLECTION
 )
 from src.contexts.rag.domain.value_objects.collection_id import CollectionID
 from src.contexts.collections.domain.value_objects.collection_file_id import CollectionFileID
@@ -212,4 +217,51 @@ class PostgresChunkReadRepository(ChunkReadRepository):
             print(e)
             raise QueryFailed(
                 "GET_CHUNKS_WITH_PAGINATION", e) from e
+
+    async def get_additional_chunks(
+        self,
+        collection_id: str,
+        offset: int,
+        limit: int,
+        search: Optional[str] = None,
+        conn: Any = None
+    ) -> tuple[List[AdditionalChunkReadModel], int]:
+        try:
+            search_param = f"%{search}%" if search else None
+
+            # Get total count
+            count_row = await self._db.fetchrow(
+                COUNT_ADDITIONAL_CHUNKS_IN_COLLECTION,
+                collection_id,
+                search_param,
+                conn=conn
+            )
+            total = count_row['total'] if count_row else 0
+
+            # Get data
+            rows = await self._db.fetch(
+                GET_ADDITIONAL_CHUNKS_IN_COLLECTION,
+                collection_id,
+                search_param,
+                offset,
+                limit,
+                conn=conn
+            )
+
+            return [
+                AdditionalChunkReadModel(
+                    id=row['id'],
+                    content=row['content'],
+                    meta=json.loads(row['meta']) if row['meta'] else {},
+                    status=row['process_status'],
+                    version=row['version'],
+                    created_at=row['created_at'].replace(tzinfo=timezone.utc) if row['created_at'] else None
+                )
+                for row in rows
+            ], total
+
+        except DatabaseError as e:
+            print(e)
+            raise QueryFailed(
+                "GET_ADDITIONAL_CHUNKS_IN_COLLECTION", e) from e
 

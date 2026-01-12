@@ -16,5 +16,6 @@ from . import (
     ingest_multiple_chunks_by_collection,
     ingest_multiple_chunks_by_collection,
     get_document_chunks_in_collection,
-    get_chunks_by_document_id
+    get_chunks_by_document_id,
+    get_additional_chunks_in_collection
 )

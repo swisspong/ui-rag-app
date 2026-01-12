@@ -20,4 +20,4 @@ class DocumentByCollectionAndFileIdMeta(BaseModel):
 
 class GetDocumentByCollectionAndFileIdResponse(BaseModel):
     data: DocumentByCollectionAndFileIdData = Field(..., description="Data containing the document")
-    meta: DocumentByCollectionAndFileIdMeta = Field(..., description="Metadata about the response")
+    metadata: DocumentByCollectionAndFileIdMeta = Field(..., description="Metadata about the response")

@@ -32,7 +32,7 @@ export default function DocumentChunkPage({
 
   const queryParams = React.useMemo(() => ({
     page: currentPage,
-    limit: 10,
+    limit: 2,
     search
   }), [currentPage, search])
 
@@ -75,7 +75,7 @@ export default function DocumentChunkPage({
       // Error is already handled by the hook (toast)
     }
   }
-
+  console.log(metadata?.totalPages)
   // Show loading state
   if (isCollectionLoading || isChunksLoading) {
     return (
@@ -145,8 +145,7 @@ export default function DocumentChunkPage({
               onFilterChange={handleFilterChange}
               onPageChange={handlePageChange}
               currentPage={currentPage}
-              totalPages={metadata ? Math.ceil(metadata.total / metadata.limit) : 1}
-              pageSize={queryParams.limit}
+              totalPages={metadata?.totalPages || 1}
             />
           </div>
         </div>

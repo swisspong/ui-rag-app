@@ -41,4 +41,5 @@ class ApplicationContainer(containers.DeclarativeContainer):
         RAGContainer,
         database=database,
         id_generator=id_generator,
+        config=config
     )

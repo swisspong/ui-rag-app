@@ -28,8 +28,8 @@ class CollectionReadModel:
     id: str
     name: str
     description: str
-    chunking_config: ChunkingConfigReadModel
-    llm_config: LLMConfigReadModel
-    embedding_config: EmbeddingConfigReadModel
+    chunking_config: Optional[ChunkingConfigReadModel]
+    llm_config: Optional[LLMConfigReadModel]
+    embedding_config: Optional[EmbeddingConfigReadModel]
     created_at: datetime.datetime
     updated_at: datetime.datetime

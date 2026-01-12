@@ -21,7 +21,7 @@ export default function FilesPage({
   const [uploadDialogOpen, setUploadDialogOpen] = React.useState(false)
   const { collection, isLoading: isLoadingCollection, error: collectionError } = useCollection(id)
   const { uploadFiles, isUploading } = useUploadFiles(id)
-  
+
   const searchParams = useSearchParams()
   const router = useRouter()
   const pathname = usePathname()
@@ -30,7 +30,7 @@ export default function FilesPage({
 
   const queryParams = React.useMemo(() => ({
     page: currentPage,
-    limit: 5,
+    limit: 2,
     search
   }), [currentPage, search])
 

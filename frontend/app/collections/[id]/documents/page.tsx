@@ -32,7 +32,7 @@ export default function DocumentsPage({
 
   const queryParams = React.useMemo(() => ({
     page: currentPage,
-    limit: 10,
+    limit: 2,
     search
   }), [currentPage, search])
 
@@ -106,6 +106,7 @@ export default function DocumentsPage({
     setIsEditDialogOpen(true)
   }
 
+  console.log(metadata?.totalPages)
   // Show loading state
   if (isCollectionLoading || isDocumentsLoading) {
     return (

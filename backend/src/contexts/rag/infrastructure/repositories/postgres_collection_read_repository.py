@@ -24,7 +24,6 @@ class PostgresCollectionReadRepository(CollectionReadRepository):
                 id,
                 conn=conn,
             )
-            
             if row is None:
                 raise ValueError(f"Collection with id {id} not found")
             
@@ -39,17 +38,17 @@ class PostgresCollectionReadRepository(CollectionReadRepository):
                 chunking_config=ChunkingConfigReadModel(
                     size=chunking_config['size'],
                     overlap=chunking_config['overlap']
-                ),
+                ) if chunking_config else None,
                 embedding_config=EmbeddingConfigReadModel(
                     model=embedding_config['model'],
                     base_url=embedding_config.get('base_url'),
                     api_key=embedding_config['api_key']
-                ),
+                ) if embedding_config else None,
                 llm_config=LLMConfigReadModel(
                     model=llm_config['model'],
                     base_url=llm_config.get('base_url'),
                     api_key=llm_config['api_key']
-                ),
+                ) if llm_config else None,
                 created_at=row['created_at'],
                 updated_at=row['updated_at']
             )
@@ -58,4 +57,5 @@ class PostgresCollectionReadRepository(CollectionReadRepository):
         except ValueError:
             raise
         except Exception as e:
+            print(e)
             raise QueryFailed("GET_COLLECTION_BY_ID", e) from e

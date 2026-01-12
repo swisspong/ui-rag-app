@@ -33,24 +33,14 @@ export function useGetDocumentChunks(
     const [isLoading, setIsLoading] = React.useState(true)
     const [error, setError] = React.useState<string | null>(null)
 
-    // Destructure params to use in dependency array
-    const { page, limit, search } = params
-
     const fetchDocumentChunks = React.useCallback(async () => {
         if (!collectionId) return
 
-        setIsLoading(true)
-        setError(null)
-
         try {
-            const response = await documentChunkService.getDocumentChunks(collectionId, {
-                page,
-                limit,
-                search,
-            })
-
+            const response = await documentChunkService.getDocumentChunks(collectionId, params)
             setData(response.data)
             setMetadata(response.metadata)
+            setError(null)
         } catch (err) {
             const errorMessage = err instanceof ApiError
                 ? err.message
@@ -60,10 +50,20 @@ export function useGetDocumentChunks(
         } finally {
             setIsLoading(false)
         }
-    }, [collectionId, page, limit, search])
+    }, [collectionId, params.page, params.limit, params.search])
 
     React.useEffect(() => {
-        fetchDocumentChunks()
+        let isMounted = true
+
+        fetchDocumentChunks().then(() => {
+            if (!isMounted) {
+                setIsLoading(false)
+            }
+        })
+
+        return () => {
+            isMounted = false
+        }
     }, [fetchDocumentChunks])
 
     return {
@@ -74,3 +74,4 @@ export function useGetDocumentChunks(
         refetch: fetchDocumentChunks,
     }
 }
+

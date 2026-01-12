@@ -47,5 +47,5 @@ async def get_document_by_collection_and_file_id(
         data=DocumentByCollectionAndFileIdData(
             document=document_data
         ),
-        meta=DocumentByCollectionAndFileIdMeta()
+        metadata=DocumentByCollectionAndFileIdMeta()
     )

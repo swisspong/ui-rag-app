@@ -9,6 +9,7 @@ export * from './use-get-collection-documents'
 export * from './use-get-document-chunks'
 export * from './use-chunk-documents'
 export * from './use-get-document-version-chunks'
+export * from './use-ingest-collection'
 
 
 

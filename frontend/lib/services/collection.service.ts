@@ -14,6 +14,8 @@ import type {
   ProcessOCRRequest,
   ProcessOCRResponse,
   UploadFilesResponse,
+  IngestCollectionRequest,
+  IngestCollectionResponse,
 } from '@/lib/types/collection.types'
 
 /**
@@ -425,6 +427,52 @@ export async function processOCR(
 }
 
 /**
+ * Ingest a document into a collection
+ *
+ * @param request - The ingest request with document details
+ * @returns Promise resolving to IngestCollectionResponse
+ * @throws ApiError if the request fails
+ */
+export async function ingestCollection(
+  request: IngestCollectionRequest
+): Promise<IngestCollectionResponse> {
+  const url = `${API_BASE_URL}/collections/ingest`
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new ApiError(
+        data.message || 'Failed to ingest collection',
+        response.status,
+        data
+      )
+    }
+
+    return data as IngestCollectionResponse
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error
+    }
+
+    // Handle network errors or other unexpected errors
+    throw new ApiError(
+      error instanceof Error ? error.message : 'An unexpected error occurred',
+      undefined,
+      undefined
+    )
+  }
+}
+
+/**
  * Collection service object with all collection-related API methods
  */
 export const collectionService = {
@@ -435,4 +483,5 @@ export const collectionService = {
   getFilesInCollection,
   getFilesSelect,
   processOCR,
+  ingestCollection,
 }

@@ -1,29 +1,33 @@
-from typing import List, Optional
+from typing import List, Optional, Any, Dict
 from pydantic import BaseModel, Field
 from datetime import datetime
 
 
-class DocumentChunkItem(BaseModel):
+class AdditionalChunkItem(BaseModel):
     id: str
+    content: str
+    meta: Dict[str, Any]
+    status: str
     version: int
-    name: str = Field(..., description="Name of the document")
-    chunk_count: int = Field(..., alias="chunkCount", description="Total number of chunks in the document")
-    created_at: datetime = Field(..., alias="createdAt", description="ISO 8601 date string when the document was created")
+    created_at: Optional[datetime] = Field(..., alias="createdAt", description="ISO 8601 date string when the chunk was created")
 
     class Config:
         populate_by_name = True
         json_schema_extra = {
             "example": {
-                "id": "doc_1",
+                "id": "chunk_1",
+                "content": "This is an additional chunk content...",
+                "meta": {
+                    "source": "manual_entry"
+                },
+                "status": "completed",
                 "version": 1,
-                "name": "Invoice 123",
-                "chunkCount": 5,
                 "createdAt": "2024-01-15T10:00:00Z"
             }
         }
 
 
-class DocumentChunkListMetadata(BaseModel):
+class AdditionalChunkListMetadata(BaseModel):
     page: int
     limit: int
     total: int
@@ -45,6 +49,6 @@ class DocumentChunkListMetadata(BaseModel):
         }
 
 
-class GetDocumentChunksInCollectionResponse(BaseModel):
-    data: List[DocumentChunkItem]
-    metadata: DocumentChunkListMetadata
+class GetAdditionalChunksInCollectionResponse(BaseModel):
+    data: List[AdditionalChunkItem]
+    metadata: AdditionalChunkListMetadata

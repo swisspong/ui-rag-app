@@ -11,7 +11,7 @@ from src.contexts.rag.infrastructure.repositories.postgres_document_repository i
 from src.contexts.rag.infrastructure.repositories.postgres_rag_process_repository import PostgresRAGProcessRepository
 from src.contexts.rag.infrastructure.repositories.postgres_collection_read_repository import PostgresCollectionReadRepository
 from src.contexts.rag.application.queries.get_collection.get_collection_query import GetCollectionQuery
-from src.contexts.rag.application.commands.ingest_by_document_in_collection.ingest_by_document_in_collection_handler import IngestByDocumentInCollectionHandler
+from src.contexts.rag.application.commands.embed_by_document_in_collection.embed_by_document_in_collection_handler import EmbedByDocumentInCollectionHandler
 from src.contexts.rag.infrastructure.database.milvus_connection import MilvusConnection
 from src.contexts.rag.infrastructure.repositories.milvus_vector_repository import MilvusVectorRepository
 from src.contexts.rag.infrastructure.repositories.postgres_document_read_repository import PostgresDocumentReadRepository
@@ -23,6 +23,8 @@ from src.contexts.rag.application.queries.get_chunk_by_id_and_collection_id.get_
 from src.contexts.rag.application.queries.get_chunks_by_collection_id.get_chunks_by_collection_id_query import GetChunksByCollectionIdQuery
 from src.contexts.rag.application.commands.update_chunk.update_chunk_handler import UpdateChunkHandler
 from src.contexts.rag.application.commands.delete_multiple_chunks.delete_multiple_chunks_handler import DeleteMultipleChunksHandler
+from src.contexts.rag.application.commands.embed.embed_handler import Embed
+from src.contexts.rag.infrastructure.repositories.pg_kv_repository import PGKVRepository
 from src.contexts.rag.application.commands.ingest_multiple_chunks_by_collection.ingest_multiple_chunks_by_collection_handler import IngestMultipleChunksByCollectionHandler
 from src.contexts.rag.application.policies.document_name_policy import DocumentNamePolicy
 from src.shared.infrastructure.repositories.postgres_asset_repository import PostgresAssetRepository
@@ -30,9 +32,11 @@ from src.contexts.rag.infrastructure.repositories.postgres_collection_file_read_
 from src.contexts.rag.application.queries.get_collection_file_in_collection.get_collection_file_in_collection_query import GetCollectionFileInCollectionQuery
 from src.contexts.rag.application.queries.get_document_chunks_in_collection.get_document_chunks_in_collection_query import GetDocumentChunksInCollectionQuery
 from src.contexts.rag.application.queries.get_document_chunks.get_document_chunks_query import GetDocumentChunksQuery
+from src.contexts.rag.application.queries.get_additional_chunks.get_additional_chunks_query import GetAdditionalChunksQuery
 
 
 class RAGContainer(containers.DeclarativeContainer):
+    config = providers.Configuration()
     database = providers.Dependency()
     id_generator = providers.Dependency()
 
@@ -88,6 +92,11 @@ class RAGContainer(containers.DeclarativeContainer):
     vector_repository = providers.Singleton(
         MilvusVectorRepository,
         connection=milvus_connection
+    )
+
+    kv_repository = providers.Singleton(
+        PGKVRepository,
+        db=database
     )
 
     tokenizer = providers.Factory(
@@ -158,15 +167,18 @@ class RAGContainer(containers.DeclarativeContainer):
         GetChunksByCollectionIdQuery,
         chunk_read_repository=chunk_read_repository
     )
-
-    ingest_by_document_in_collection_handler = providers.Factory(
-        IngestByDocumentInCollectionHandler,
+    
+    embed_by_document_in_collection_handler = providers.Factory(
+        EmbedByDocumentInCollectionHandler,
+        enable_config_mode=config.enable_config_mode,
+        embedding_model=config.embedding.model,
+        embedding_base_url=config.embedding.base_url,
+        embedding_api_key=config.embedding.api_key,
         embedding=embedding,
         id_generator=id_generator,
         vector_repo=vector_repository,
         get_collection_query=get_collection_query,
-        chunk_repository=chunk_repository,
-        rag_process_repository=rag_process_repository
+        chunk_repository=chunk_repository
     )
 
     update_chunk_handler = providers.Factory(
@@ -190,5 +202,19 @@ class RAGContainer(containers.DeclarativeContainer):
 
     get_document_chunks_in_collection_query = providers.Factory(
         GetDocumentChunksInCollectionQuery,
+        chunk_read_repository=chunk_read_repository
+    )
+
+    embed_handler = providers.Factory(
+        Embed,
+        embedding=embedding,
+        tokenizer=tokenizer,
+        id_generator=id_generator,
+        kv_repo=kv_repository,
+        vector_repo=vector_repository
+    )
+
+    get_additional_chunks_query = providers.Factory(
+        GetAdditionalChunksQuery,
         chunk_read_repository=chunk_read_repository
     )

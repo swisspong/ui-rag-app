@@ -68,7 +68,7 @@ async def get_documents_in_collection(
             }
             for doc in result.documents
         ],
-        meta=DocumentsInCollectionMeta(
+        metadata=DocumentsInCollectionMeta(
             page=page,
             limit=limit,
             total=result.total,

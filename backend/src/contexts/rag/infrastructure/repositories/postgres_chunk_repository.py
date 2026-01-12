@@ -48,12 +48,14 @@ class PostgresChunkRepository(ChunkRepository):
             print(e)
             raise QueryFailed("SAVE_CHUNK", e) from e
 
-    async def get_by_document_id_in_collection(self, collection_id: CollectionID, document_id: DocumentID, conn: Any = None) -> List[Chunk]:
+    async def get_by_document_id_in_collection(self, collection_id: CollectionID, document_id: DocumentID, version: int, status: ProcessStatus, conn: Any = None) -> List[Chunk]:
         try:
             rows = await self._db.fetch(
                 GET_CHUNKS_BY_COLLECTION_ID,
                 collection_id.value,
                 document_id.value,
+                version,
+                status.value,
                 conn=conn
             )
             return [
@@ -66,6 +68,7 @@ class PostgresChunkRepository(ChunkRepository):
                     meta=json.loads(row["meta"]) if row["meta"] else {},
                     process_status=ProcessStatus(row["process_status"]) if row.get(
                         "process_status") else ProcessStatus.PENDING,
+                    version=row["version"],
                     created_at=row["created_at"],
                     updated_at=row["updated_at"],
                 )

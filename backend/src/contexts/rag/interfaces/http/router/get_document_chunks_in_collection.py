@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, Query, Request
 from dependency_injector.wiring import inject, Provide
 from typing import Optional
+import math
+
 
 from src.boot.container import ApplicationContainer
 from src.contexts.rag.application.queries.get_document_chunks_in_collection.get_document_chunks_in_collection_query import GetDocumentChunksInCollectionQuery
@@ -52,6 +54,7 @@ async def get_document_chunks_in_collection(
             page=page,
             limit=result.limit,
             total=result.total,
+            total_pages=math.ceil(result.total / result.limit) if result.limit > 0 else 0,
             has_next_page=(result.offset + result.limit) < result.total,
             has_previous_page=result.offset > 0
         )

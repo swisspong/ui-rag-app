@@ -16,6 +16,7 @@ from src.contexts.collections.infrastructure.services.local_file_storage import 
 
 
 class CollectionContainer(containers.DeclarativeContainer):
+    config = providers.Configuration()
     database = providers.Dependency()
     id_generator = providers.Dependency()
     asset_storage = providers.Dependency()

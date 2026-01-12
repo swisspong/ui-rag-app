@@ -37,5 +37,5 @@ class DocumentsInCollectionMeta(BaseModel):
 class GetDocumentsInCollectionResponse(BaseModel):
     data: List[DocumentItem] = Field(
         ..., description="Data containing the list of documents")
-    meta: Optional[DocumentsInCollectionMeta] = Field(None,
+    metadata: Optional[DocumentsInCollectionMeta] = Field(None,
                                                       description="Metadata about the response")

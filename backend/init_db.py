@@ -9,6 +9,9 @@ TABLES = {
                     description TEXT,
                     created_at TIMESTAMP(0) DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP(0) DEFAULT CURRENT_TIMESTAMP,
+                    chunking_config JSONB DEFAULT '{}'::jsonb,
+                    llm_config JSONB DEFAULT '{}'::jsonb,
+                    embedding_config JSONB DEFAULT '{}'::jsonb,
 	                CONSTRAINT COLLECTIONS_PK PRIMARY KEY (id)
                     )"""
     },
@@ -50,7 +53,7 @@ TABLES = {
     "CHUNKS": {
         "ddl": """CREATE TABLE CHUNKS (
                     id VARCHAR(255),
-                    document_id VARCHAR(255),
+                    document_id VARCHAR(255) NULL,
                     collection_id VARCHAR(255),
                     content TEXT,
                     order_index INTEGER,
@@ -141,6 +144,28 @@ async def main():
             await db.execute("ALTER TABLE CHUNKS ADD COLUMN version INTEGER DEFAULT 1")
     except Exception as e:
         print(f"Failed to migrate CHUNKS table: {e}")
+
+    # Migration: Add config columns to COLLECTIONS if they don't exist
+    for col in ["chunking_config", "llm_config", "embedding_config"]:
+        try:
+            check_col_sql = f"""
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_name='collections' AND column_name='{col}'
+            """
+            has_col = await db.fetchrow(check_col_sql)
+            if not has_col:
+                print(f"Adding {col} column to COLLECTIONS table...")
+                await db.execute(f"ALTER TABLE COLLECTIONS ADD COLUMN {col} JSONB DEFAULT '{{}}'::jsonb")
+        except Exception as e:
+            print(f"Failed to migrate COLLECTIONS table for column {col}: {e}")
+
+    # Migration: Allow document_id to be NULL in CHUNKS
+    try:
+        print("Altering CHUNKS table to allow NULL document_id...")
+        await db.execute("ALTER TABLE CHUNKS ALTER COLUMN document_id DROP NOT NULL")
+    except Exception as e:
+        print(f"Failed to alter CHUNKS table for document_id: {e}")
 
     table_names = list(TABLES.keys())
     table_names_lower = [t.lower() for t in table_names]

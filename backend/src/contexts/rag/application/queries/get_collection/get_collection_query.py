@@ -11,6 +11,7 @@ class GetCollectionQuery:
         self._collection_read_repo = collection_read_repository
 
     async def execute(self, input: GetCollectionInput) -> GetCollectionOutput:
+        print(input.collection_id)
         collection = await self._collection_read_repo.get_by_id(input.collection_id)
         return GetCollectionOutput(
             collection=collection

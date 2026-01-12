@@ -4,6 +4,7 @@ from src.contexts.rag.domain.entities.new_chunk import Chunk
 from src.contexts.rag.domain.value_objects.collection_id import CollectionID
 from src.contexts.rag.domain.value_objects.document_id import DocumentID
 from src.contexts.rag.domain.value_objects.chunk_id import ChunkID
+from src.contexts.rag.domain.value_objects.stage_execution import ProcessStatus
 
 
 class ChunkRepository(ABC):
@@ -11,8 +12,9 @@ class ChunkRepository(ABC):
     async def save(self, data: Chunk, conn: Any = None) -> Chunk:
         pass
 
+
     @abstractmethod
-    async def get_by_document_id_in_collection(self, collection_id: CollectionID, document_id: DocumentID, conn: Any = None) -> List[Chunk]:
+    async def get_by_document_id_in_collection(self, collection_id: CollectionID, document_id: DocumentID, version: int, status: ProcessStatus, conn: Any = None) -> List[Chunk]:
         pass
 
     @abstractmethod

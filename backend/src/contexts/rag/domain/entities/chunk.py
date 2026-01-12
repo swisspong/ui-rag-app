@@ -2,7 +2,7 @@ import datetime
 from dataclasses import dataclass
 from typing import Optional
 from datetime import timezone
-from api.src.contexts.rag.domain.value_objects.doc_chunk_id import DocChunkId
+from src.contexts.rag.domain.value_objects.doc_chunk_id import DocChunkId
 
 @dataclass
 class DocChunk:

@@ -34,21 +34,13 @@ export function useGetCollectionDocuments(
     const [error, setError] = React.useState<string | null>(null)
 
     // Destructure params to use in dependency array
-    const { page, limit, search, select } = params
+    // const { page, limit, search, select } = params
 
     const fetchDocuments = React.useCallback(async () => {
         if (!collectionId) return
 
-        setIsLoading(true)
-        setError(null)
-
         try {
-            const response = await documentService.getCollectionDocuments(collectionId, {
-                page,
-                limit,
-                search,
-                select,
-            })
+            const response = await documentService.getCollectionDocuments(collectionId, params)
 
             // Check if response is the standard paginated response
             if ('metadata' in response) {
@@ -60,6 +52,7 @@ export function useGetCollectionDocuments(
                 setData(response.data as unknown as Document[])
                 setMetadata(null)
             }
+            setError(null)
         } catch (err) {
             const errorMessage = err instanceof ApiError
                 ? err.message
@@ -69,10 +62,20 @@ export function useGetCollectionDocuments(
         } finally {
             setIsLoading(false)
         }
-    }, [collectionId, page, limit, search, select])
+    }, [collectionId, params.page, params.limit, params.search, params.select])
 
     React.useEffect(() => {
-        fetchDocuments()
+        let isMounted = true
+
+        fetchDocuments().then(() => {
+            if (!isMounted) {
+                setIsLoading(false)
+            }
+        })
+
+        return () => {
+            isMounted = false
+        }
     }, [fetchDocuments])
 
     return {

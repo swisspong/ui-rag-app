@@ -268,6 +268,7 @@ class MilvusVectorRepository(VectorRepository):
             logger.error(
                 f"[{formatted_collection_name}] Collection does not exist"
             )
+            return []
             raise ValueError(f"Collection {collection_id} does not exist")
         
         self._ensure_collection_loaded(formatted_collection_name)

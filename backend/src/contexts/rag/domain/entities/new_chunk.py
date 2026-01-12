@@ -10,10 +10,10 @@ from src.contexts.rag.domain.value_objects.stage_execution import ProcessStatus
 from src.contexts.rag.domain.errors.chunk_ingest_not_allowed import ChunkIngestNotAllowed
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Chunk:
     id: ChunkID
-    document_id: DocumentID
+    document_id: Optional[DocumentID] = None
     collection_id: CollectionID
     content: str
     order_index: int
@@ -26,13 +26,13 @@ class Chunk:
     @staticmethod
     def create(
         id: ChunkID,
-        document_id: DocumentID,
         collection_id: CollectionID,
         content: str,
         order_index: int,
         meta:  Dict[str, Any],
         process_status: ProcessStatus = ProcessStatus.PENDING,
-        version: int = 1
+        version: int = 1,
+        document_id: Optional[DocumentID] = None,
     ):
         now = datetime.datetime.now(timezone.utc).replace(tzinfo=None)
 
@@ -65,6 +65,7 @@ class Chunk:
 
     def start_processing(self) -> None:
         """Mark the chunk as currently being processed."""
+        self.ensure_can_ingest()
         self.process_status = ProcessStatus.RUNNING
         now = datetime.datetime.now(timezone.utc).replace(tzinfo=None)
         self.updated_at = now

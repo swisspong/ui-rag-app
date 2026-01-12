@@ -183,3 +183,25 @@ export interface ProcessOCRRequest {
 export interface ProcessOCRResponse {
   success: boolean
 }
+
+/**
+ * Ingestion status
+ */
+export type IngestStatus = 'pending' | 'failed'
+
+/**
+ * Request body for ingesting a document into a collection
+ */
+export interface IngestCollectionRequest {
+  document_id: string
+  collection_id: string
+  version: number
+  status: IngestStatus
+}
+
+/**
+ * Response body for ingesting a document into a collection
+ */
+export interface IngestCollectionResponse {
+  success: boolean
+}

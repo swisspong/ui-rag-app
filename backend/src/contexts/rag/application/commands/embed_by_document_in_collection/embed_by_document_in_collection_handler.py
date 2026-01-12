@@ -2,8 +2,9 @@
 import asyncio
 
 import numpy as np
+from typing import Any, Optional
 
-from src.contexts.rag.application.commands.ingest_by_document_in_collection.ingest_by_document_in_collection_input import IngestionByDocumentInCollectionInput
+from src.contexts.rag.application.commands.embed_by_document_in_collection.embed_by_document_in_collection_input import EmbedByDocumentInCollectionInput
 from src.shared.ids.id_generator import IDGenerator
 from src.contexts.rag.domain.entities.new_vector_chunk import NewVectorChunk
 from src.contexts.rag.domain.value_objects.vector_chunk_id import VectorChunkID
@@ -15,52 +16,55 @@ from src.contexts.rag.application.queries.get_collection.get_collection_input im
 from src.contexts.rag.application.queries.get_collection.get_collection_query import GetCollectionQuery
 from src.shared.application.errors import NotFound
 from src.contexts.rag.domain.repositories.chunk_repository import ChunkRepository
-from src.contexts.rag.domain.repositories.rag_process_repository import RAGProcessRepository
 from src.contexts.rag.domain.value_objects.collection_id import CollectionID
+from src.contexts.rag.domain.errors.chunk_ingest_not_allowed import ChunkIngestNotAllowed
+from src.contexts.rag.domain.value_objects.stage_execution import ProcessStatus
 
 
-class IngestByDocumentInCollectionHandler:
+class EmbedByDocumentInCollectionHandler:
     def __init__(
         self,
+        enable_config_mode: bool,
+        embedding_model: str,
+        embedding_base_url: Optional[str],
+        embedding_api_key: str,
         embedding: Embedding,
         id_generator: IDGenerator,
         vector_repo: VectorRepository,
         get_collection_query: GetCollectionQuery,
-        chunk_repository: ChunkRepository,
-        rag_process_repository: RAGProcessRepository
+        chunk_repository: ChunkRepository
     ):
+        self._enable_config_mode = enable_config_mode
+        self._embedding_api_key = embedding_api_key
+        self._embedding_base_url = embedding_base_url
+        self._embedding_model = embedding_model
         self._embedding = embedding
         self._id_generator = id_generator
         self._vector_repo = vector_repo
         self._get_collection_query = get_collection_query
         self._chunk_repo = chunk_repository
-        self._rag_process_repo = rag_process_repository
 
-    async def execute(self, input: IngestionByDocumentInCollectionInput) -> None:
-        # document_id = DocumentID.from_value(input.document_id)
-        collection_file_id = CollectionFileID.from_value(input.document_id)
-        collection_id = CollectionID.from_value(input.collection_id)
-        rag_process = await self._rag_process_repo.get_by_collection_id_and_collection_file_id(
-            collection_id, collection_file_id)
-        print(rag_process)
-        # rag_process = await self._rag_process_repo.get_by_document_id_and_collection_id(
-        #     document_id, collection_id)
-        if not rag_process:
-            raise NotFound("Rag process not found")
-        document_id = rag_process.document_id
-        collection_result = await self._get_collection_query.execute(GetCollectionInput(input.collection_id))
+    async def execute(self, input: EmbedByDocumentInCollectionInput) -> None:
+        if input.status in (ProcessStatus.RUNNING, ProcessStatus.COMPLETED):
+             raise ChunkIngestNotAllowed(process_status=input.status.value)
+
+        collection_result = await self._get_collection_query.execute(GetCollectionInput(input.collection_id.value))
         if not collection_result.collection:
             raise NotFound("Collectin not found")
 
-        chunks = await self._chunk_repo.get_by_document_id_in_collection(collection_id, document_id)
-        
+        chunks = await self._chunk_repo.get_by_document_id_in_collection(
+            input.collection_id,
+            input.document_id,
+            input.version,
+            input.status
+        )
+        print(chunks)
+        if len(chunks) <= 0:
+            raise NotFound("Chunks not found")
         # Mark all chunks as RUNNING before processing
         for chunk in chunks:
             chunk.start_processing()
             await self._chunk_repo.save(chunk)
-        
-        rag_process.start_ingest()
-        await self._rag_process_repo.save(rag_process)
         max_batch_size = 10
 
         contents = [v.content for v in chunks]
@@ -68,13 +72,21 @@ class IngestByDocumentInCollectionHandler:
             contents[i: i + max_batch_size]
             for i in range(0, len(contents), max_batch_size)
         ]
+        if self._enable_config_mode is False:
+            embedding_model = self._embedding_model
+            embedding_api_key = self._embedding_api_key
+            embedding_base_url = self._embedding_base_url
+        else:
+            embedding_model = collection_result.collection.embedding_config.model
+            embedding_api_key = collection_result.collection.embedding_config.api_key
+            embedding_base_url = collection_result.collection.embedding_config.base_url
 
         embedding_tasks = [
             self._embedding.embed(
                 batch,
-                model=collection_result.collection.embedding_config.model,
-                base_url=collection_result.collection.embedding_config.base_url,
-                api_key=collection_result.collection.embedding_config.api_key,
+                model=embedding_model,
+                base_url=embedding_base_url,
+                api_key=embedding_api_key,
             )
             for batch in batches
         ]
@@ -86,7 +98,7 @@ class IngestByDocumentInCollectionHandler:
         for i, d in enumerate(chunks):
             # Check if a vector chunk already exists for this chunk_id
             existing_vector_chunks = await self._vector_repo.get_by_collection_id_and_chunk_id(
-                collection_id.value, d.id.value
+                input.collection_id.value, d.id.value
             )
             
             if existing_vector_chunks:
@@ -122,6 +134,3 @@ class IngestByDocumentInCollectionHandler:
         for chunk in chunks:
             chunk.complete_processing()
             await self._chunk_repo.save(chunk)
-        
-        rag_process.finish_ingest()
-        await self._rag_process_repo.save(rag_process)

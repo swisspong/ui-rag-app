@@ -5,7 +5,7 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { DataTable } from "@/components/ui/data-table"
 import { useRouter, usePathname } from "next/navigation"
-import { useGetDocumentVersionChunks } from "@/lib/hooks/api"
+import { useGetDocumentVersionChunks, useIngestCollection } from "@/lib/hooks/api"
 import {
   CollectionHeader,
   subChunkColumns,
@@ -30,7 +30,7 @@ export default function DocumentChunkDetailPage({
 
   // Parse query params
   const page = Number(resolvedSearchParams.page) || 1
-  const limit = Number(resolvedSearchParams.limit) || 10
+  const limit = Number(resolvedSearchParams.limit) || 2
   const search = resolvedSearchParams.search || ""
 
   // Fetch data
@@ -52,6 +52,21 @@ export default function DocumentChunkDetailPage({
   // Using explicit type assertion for editingSubChunk to match the hook data type
   // In a real app we might want to unify these types
   const [editingSubChunk, setEditingSubChunk] = React.useState<any | null>(null)
+
+  const { ingestCollection, isLoading: isIngesting } = useIngestCollection()
+
+  const handleProcess = async (status: 'pending' | 'failed') => {
+    try {
+      await ingestCollection({
+        collection_id: id,
+        document_id: documentId,
+        version: parseInt(version),
+        status,
+      })
+    } catch (error) {
+      console.error("Failed to process ingestion:", error)
+    }
+  }
 
   const handleAddAdditionalChunk = async (data: AdditionalChunkData) => {
     console.log("Submitted additional chunk data:", data)
@@ -160,8 +175,19 @@ export default function DocumentChunkDetailPage({
               </div>
               <div className="flex gap-2">
                 <Button onClick={handleOpenCreateDialog}>Add Chunk</Button>
-                <Button>Process All Pending</Button>
-                <Button>Process All Fail</Button>
+                <Button
+                  onClick={() => handleProcess('pending')}
+                  disabled={isIngesting}
+                >
+                  {isIngesting ? "Processing..." : "Process All Pending"}
+                </Button>
+                <Button
+                  onClick={() => handleProcess('failed')}
+                  disabled={isIngesting}
+                  variant="destructive"
+                >
+                  {isIngesting ? "Processing..." : "Process All Fail"}
+                </Button>
               </div>
             </div>
 

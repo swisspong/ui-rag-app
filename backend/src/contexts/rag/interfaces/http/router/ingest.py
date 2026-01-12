@@ -6,9 +6,12 @@ from src.contexts.rag.interfaces.http.schema.ingest import (
     IngestRequest,
     IngestResponse
 )
-from src.contexts.rag.application.commands.ingest_by_document_in_collection.ingest_by_document_in_collection_handler import IngestByDocumentInCollectionHandler
-from src.contexts.rag.application.commands.ingest_by_document_in_collection.ingest_by_document_in_collection_input import IngestionByDocumentInCollectionInput
+from src.contexts.rag.application.commands.embed_by_document_in_collection.embed_by_document_in_collection_handler import EmbedByDocumentInCollectionHandler
+from src.contexts.rag.application.commands.embed_by_document_in_collection.embed_by_document_in_collection_input import EmbedByDocumentInCollectionInput
 from src.boot.container import ApplicationContainer
+from src.contexts.rag.domain.value_objects.collection_id import CollectionID
+from src.contexts.rag.domain.value_objects.document_id import DocumentID
+from src.contexts.rag.domain.value_objects.stage_execution import ProcessStatus
 from . import router
 
 
@@ -22,13 +25,16 @@ from . import router
 @inject
 async def ingest(
     request: IngestRequest,
-    ingest_by_document_in_collection_handler: IngestByDocumentInCollectionHandler = Depends(
-        Provide[ApplicationContainer.rag_package.ingest_by_document_in_collection_handler]),
+    embed_by_document_in_collection_handler: EmbedByDocumentInCollectionHandler = Depends(
+        Provide[ApplicationContainer.rag_package.embed_by_document_in_collection_handler]),
 ) -> IngestResponse:
-    input = IngestionByDocumentInCollectionInput(
-        collection_id=request.collection_id,
-        document_id=request.document_id
+
+    input = EmbedByDocumentInCollectionInput(
+        collection_id=CollectionID.from_value(request.collection_id),
+        document_id=DocumentID.from_value(request.document_id),
+        version=request.version,
+        status=ProcessStatus(request.status)
     )
-    result = await ingest_by_document_in_collection_handler.execute(input)
+    result = await embed_by_document_in_collection_handler.execute(input)
 
     return IngestResponse()
